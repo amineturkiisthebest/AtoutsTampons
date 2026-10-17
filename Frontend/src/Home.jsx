@@ -26,14 +26,121 @@ import productLadotSet from './assets/products/ladot-set-bear-dolphin.jpg'
 import productTextileStamp from './assets/products/marky-textile-stamp-green.jpg'
 import productInkPad from './assets/products/make-1-ink-pad-uv.jpg'
 
+// Menu entries are either a label string or { label, children } for a nested menu
 const navLinks = [
-  { label: 'Tampons personalisés' },
-  { label: "Prèts à l'emploi" },
-  { label: 'Tampons créatifs' },
-  { label: 'Tampons Speciaux' },
-  { label: 'Accessoires', active: true },
-  { label: 'Gravures' },
-  { label: 'Impression mobile' },
+  {
+    label: 'Tampons personnalisés',
+    children: [
+      { label: 'Tampons de texte', children: ['Rectangulaires', 'Longs', 'Carrés', 'Ronds et ovales'] },
+      { label: 'Dateurs', children: ['Rectangulaires', 'Carrés', 'Ronds et ovales', 'Grandes tailles', 'Doubles dateurs'] },
+      { label: 'Numéroteurs' },
+    ],
+  },
+  {
+    label: "Prêts à l'emploi",
+    children: [
+      { label: 'Formules commerciales' },
+      { label: 'Multi-formules' },
+      { label: 'Dateurs' },
+      { label: 'Numéroteurs' },
+    ],
+  },
+  {
+    label: 'Tampons créatifs',
+    children: [
+      { label: 'Marky' },
+      { label: 'Woodies', children: ['Woodies montures', 'Woodies encriers'] },
+      { label: 'LaDot', children: ['Pierres', 'Encres & Liners & Strass', 'Coffrets'] },
+      { label: 'NIO', children: ['NIO école', 'Little NIO', 'Encriers NIO'] },
+      { label: 'Cleany' },
+      { label: 'Encriers & Tampons encreurs' },
+    ],
+  },
+  {
+    label: 'Tampons spéciaux',
+    children: ['Gamme écologique', 'Tampons de poche', 'Sécurité', 'Presses à estamper', 'Gamme EOS'],
+  },
+  {
+    label: 'Accessoires',
+    children: [
+      {
+        label: 'Plaques de texte',
+        children: [
+          'Textes pour tampons Printers',
+          'Textes pour Dateurs / Numéroteurs',
+          'Textes pour Gammes intensives',
+          'Textes pour Gammes intensives dateurs',
+          'Plaques de texte pour appareils Trodat',
+        ],
+      },
+      {
+        label: 'Encriers',
+        children: [
+          {
+            label: 'Encriers pour appareils Colop',
+            children: ['COLOP Printer / Pocket / Mini', 'COLOP Office / Classic / Expert', 'Encriers bicolores'],
+          },
+          'Encriers pour appareils Trodat',
+        ],
+      },
+      'Tampons encreurs',
+      'Encres',
+    ],
+  },
+  {
+    label: 'Gravures',
+    children: [
+      { label: 'Formats standard', children: ['Plaques boîtes aux lettres', 'Plaques de portes', 'Plaques professions libérales'] },
+      'À la ligne',
+    ],
+  },
+  {
+    label: 'Impression mobile',
+    children: ['e-mark Pro', 'e-mark go', 'e-mark create', 'Accessoires'],
+  },
+]
+
+// Dropdown entries, rendered recursively so menus can nest to any depth
+function NavMenuItems({ items, parentKey, expandedMenus, onToggle, onNavigate }) {
+  return items.map((item) => {
+    const entry = typeof item === 'string' ? { label: item } : item
+    const key = `${parentKey}/${entry.label}`
+    const expanded = expandedMenus.has(key)
+
+    return (
+      <li key={entry.label} className={`nav-dropdown__item${expanded ? ' is-expanded' : ''}`}>
+        <a href="#" onClick={onNavigate}>{entry.label}</a>
+        {entry.children && (
+          <>
+            <button
+              className="nav-expand"
+              type="button"
+              aria-label={`Sous-menu ${entry.label}`}
+              aria-expanded={expanded}
+              onClick={() => onToggle(key)}
+            >
+              <i className="fa-solid fa-chevron-right" aria-hidden="true"></i>
+            </button>
+            <ul className="nav-submenu">
+              <NavMenuItems
+                items={entry.children}
+                parentKey={key}
+                expandedMenus={expandedMenus}
+                onToggle={onToggle}
+                onNavigate={onNavigate}
+              />
+            </ul>
+          </>
+        )}
+      </li>
+    )
+  })
+}
+
+const heroPerks = [
+  { icon: 'fa-solid fa-pen-ruler', label: 'Personnalisation', text: 'Texte, logo ou motif' },
+  { icon: 'fa-solid fa-truck-fast', label: 'Livraison rapide', text: '2 à 7 jours ouvrables' },
+  { icon: 'fa-solid fa-award', label: 'Qualité COLOP', text: 'Fabrication européenne' },
 ]
 
 const categories = [
@@ -86,6 +193,7 @@ const revealSelector = '.section-intro, .brand-tile, .partnership, .news article
 function Home() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [navOpen, setNavOpen] = useState(false)
+  const [expandedMenus, setExpandedMenus] = useState(() => new Set())
   const [searchOpen, setSearchOpen] = useState(false)
   const [filtersHidden, setFiltersHidden] = useState(false)
   const [activeCategory, setActiveCategory] = useState(null)
@@ -126,6 +234,16 @@ function Home() {
     document.addEventListener('click', handleClick)
     return () => document.removeEventListener('click', handleClick)
   }, [searchOpen])
+
+  // Sub-menus are opened by tapping on mobile (hover is used on desktop)
+  const toggleMenu = (key) => {
+    setExpandedMenus((current) => {
+      const next = new Set(current)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+  }
 
   const setSearch = (open) => {
     searchToggled.current = true
@@ -223,10 +341,37 @@ function Home() {
             <img src={logo} alt="Atouts Tampons" width="600" height="157" />
           </a>
           <nav className={`main-nav${navOpen ? ' open' : ''}`} aria-label="Navigation principale">
-            {navLinks.map((link) => (
-              <a key={link.label} className={link.active ? 'active' : undefined} href="#" onClick={() => setNavOpen(false)}>
-                {link.label}
-              </a>
+            {navLinks.map((link, index) => (
+              <div
+                key={link.label}
+                className={`nav-item${index >= navLinks.length - 3 ? ' nav-item--end' : ''}${expandedMenus.has(link.label) ? ' is-expanded' : ''}`}
+              >
+                <a className={link.active ? 'active' : undefined} href="#" onClick={() => setNavOpen(false)}>
+                  {link.label}
+                </a>
+                {link.children && (
+                  <>
+                    <button
+                      className="nav-expand"
+                      type="button"
+                      aria-label={`Sous-menu ${link.label}`}
+                      aria-expanded={expandedMenus.has(link.label)}
+                      onClick={() => toggleMenu(link.label)}
+                    >
+                      <i className="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                    </button>
+                    <ul className="nav-dropdown">
+                      <NavMenuItems
+                        items={link.children}
+                        parentKey={link.label}
+                        expandedMenus={expandedMenus}
+                        onToggle={toggleMenu}
+                        onNavigate={() => setNavOpen(false)}
+                      />
+                    </ul>
+                  </>
+                )}
+              </div>
             ))}
           </nav>
           <div className="header-actions">
@@ -279,13 +424,24 @@ function Home() {
         <section className="hero">
           <div className="hero__inner">
             <div className="hero-copy">
-              <span className="hero-kicker">Produits créatifs authentiques</span>
-              <h1>ARTS &amp; CRAFTS</h1>
-              <p>Découvrez une sélection unique de tampons, encreurs et accessoires créatifs, fabriqués avec passion et savoir-faire.</p>
+              <span className="hero-kicker">Bienvenue chez Atouts Tampons</span>
+              <h1>Votre tampon, <span>à votre image</span></h1>
+              <p>
+                Tampons personnalisés, prêts à l'emploi ou créatifs : créez le tampon qui vous ressemble en quelques clics
+                et recevez-le directement chez vous.
+              </p>
               <div className="hero-actions">
-                <a className="btn btn--arrow" href="#collection">Notre collection</a>
-                <a className="btn btn--ghost btn--arrow" href="#">Nous trouver</a>
+                <a className="btn btn--arrow" href="#">Créer mon tampon</a>
+                <a className="btn btn--ghost btn--arrow" href="#collection">Découvrir la boutique</a>
               </div>
+              <ul className="hero-perks">
+                {heroPerks.map((perk) => (
+                  <li key={perk.label}>
+                    <i className={perk.icon} aria-hidden="true"></i>
+                    <span><strong>{perk.label}</strong>{perk.text}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
             <div className="hero-art">
               <video className="hero-video" autoPlay muted loop playsInline aria-label="Vidéo des produits COLOP Arts & Crafts">
@@ -353,19 +509,6 @@ function Home() {
         </div>
 
         <div className="after-universe">
-          <section className="partnership">
-            <div>
-              <span className="eyebrow">Notre engagement</span>
-              <h2>Un partenariat solide pour des tampons créatifs</h2>
-              <p>
-                COLOP Arts &amp; Crafts est l'alliance d'une équipe créative forte de plus de 20 ans d'expérience dans le
-                développement et la production de tampons créatifs, avec le fabricant autrichien COLOP. Nous misons sur
-                une fabrication 100% européenne, une qualité premium et une image de marque moderne et professionnelle.
-              </p>
-              <a className="btn btn--small" href="#"><i className="fa-solid fa-file-arrow-down" aria-hidden="true"></i>Télécharger le catalogue</a>
-            </div>
-            <img src={companyImg} alt="Produits créatifs COLOP Arts & Crafts" />
-          </section>
 
           <section className="news">
             <div className="section-heading">
