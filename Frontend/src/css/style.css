@@ -2330,12 +2330,6 @@ img {
 
 /* ---------- Marky page ---------- */
 
-/* Page scrolling is paused while a hero transition plays (Marky.jsx) */
-html.marky-sequence-locked,
-body.marky-sequence-locked {
-  overflow: hidden;
-}
-
 .marky-page {
   padding-bottom: 40px;
 }
@@ -2564,13 +2558,18 @@ body.marky-sequence-locked {
   border: 1px solid rgba(226, 232, 240, 0.9);
   border-radius: 999px;
   box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
+  font: inherit;
   font-size: 13px;
   font-weight: 800;
   white-space: nowrap;
+  cursor: pointer;
   transform: translateX(-50%);
-  transition: opacity 220ms ease;
+  transition: opacity 220ms ease, background 160ms ease;
   animation: marky-hint-bob 2.4s ease-in-out infinite;
-  pointer-events: none;
+}
+
+.marky-hint:hover {
+  background: #fff;
 }
 
 .marky-hint i {
@@ -2579,6 +2578,7 @@ body.marky-sequence-locked {
 
 .marky-hint.is-hidden {
   opacity: 0;
+  pointer-events: none;
 }
 
 @keyframes marky-hint-bob {

@@ -127,11 +127,6 @@ const loadImage = (src) => new Promise((resolve) => {
   image.src = src
 })
 
-const setScrollLock = (locked) => {
-  document.documentElement.classList.toggle('marky-sequence-locked', locked)
-  document.body.classList.toggle('marky-sequence-locked', locked)
-}
-
 function ColorSwatches({ options, value, onChange, className = '' }) {
   return (
     <div className={`marky-swatches ${className}`}>
@@ -196,24 +191,17 @@ function Marky() {
   const rootRef = useRef(null)
   const heroRef = useRef(null)
   const videoRef = useRef(null)
-  // Mutable sequence state read by the scroll handlers (kept out of React state to avoid stale closures)
-  const sequence = useRef({ step: 0, color: 'green', running: false, resetting: false, complete: false, videoRunning: false })
+  // Mutable sequence state read by the click handler (kept out of React state to avoid stale closures)
+  const sequence = useRef({ step: 0, color: 'green', running: false, resetting: false, videoRunning: false })
 
   useReveal(rootRef, '.marky-intro, .marky-featured, .marky-card')
 
-  // Scroll-driven hero: each downward scroll inside the hero plays the next transition instead of scrolling
+  // Click-driven hero: each click plays the transition to the next step, and after the last step returns to the start
   useEffect(() => {
     const hero = heroRef.current
     const video = videoRef.current
     const seq = sequence.current
-    let touchStartY = 0
     let alive = true
-
-    const isHeroActive = () => window.scrollY < hero.offsetTop + hero.offsetHeight - 4
-    const holdHero = () => window.scrollTo({ top: hero.offsetTop, left: 0 })
-    const preventScroll = (event) => {
-      if (event.cancelable) event.preventDefault()
-    }
 
     const playTransition = (from) => new Promise((resolve) => {
       let finished = false
@@ -242,16 +230,11 @@ function Marky() {
       window.setTimeout(finish, 12000)
     })
 
-    // fromClick: a click may replay the sequence even after it has been completed by scrolling
-    const runNextStep = async (fromClick = false) => {
-      if ((seq.complete && !fromClick) || seq.resetting || seq.running || seq.step >= MAX_STEP || !isHeroActive()) return
-
+    const runNextStep = async () => {
       seq.running = true
       const previous = seq.step
       seq.step += 1
       const next = seq.step
-      setScrollLock(true)
-      holdHero()
 
       const transition = playTransition(previous)
 
@@ -268,19 +251,11 @@ function Marky() {
       setFrameState(next)
       setShowVideo(false)
       video.pause()
-
-      setScrollLock(false)
       seq.running = false
     }
 
-    // After the last step, the next scroll (or click) brings the hero back to its start and releases the page
-    const resetSequence = async (fromClick = false) => {
-      if (seq.resetting || seq.running || seq.videoRunning || (seq.complete && !fromClick) || seq.step < MAX_STEP) return
-
+    const resetSequence = async () => {
       seq.resetting = true
-      seq.complete = true
-      setScrollLock(true)
-      holdHero()
       seq.step = 0
       video.pause()
       setShowVideo(false)
@@ -295,53 +270,18 @@ function Marky() {
       setTextAnimation('is-entering')
       setImageHidden(false)
       seq.resetting = false
-      setScrollLock(false)
       await wait(520)
       setTextAnimation('')
     }
 
-    const handleDown = (event) => {
-      if (seq.running || seq.resetting) {
-        preventScroll(event)
-        return
-      }
-      if (seq.complete || !isHeroActive()) return
-
-      preventScroll(event)
+    // Clicks on the hero's links and buttons keep their own behaviour, except the "next step" hint button
+    const handleClick = (event) => {
+      if (event.target.closest('a, button:not(.marky-hint)')) return
+      if (seq.running || seq.resetting || seq.videoRunning) return
       if (seq.step < MAX_STEP) runNextStep()
       else resetSequence()
     }
 
-    const handleWheel = (event) => {
-      if (event.deltaY > 0) handleDown(event)
-      else if (seq.running || seq.resetting) preventScroll(event)
-    }
-
-    const handleTouchStart = (event) => {
-      touchStartY = event.touches[0]?.clientY ?? 0
-    }
-
-    const handleTouchMove = (event) => {
-      const touchY = event.touches[0]?.clientY ?? touchStartY
-      if (touchStartY - touchY > 8) handleDown(event)
-      else if (seq.running || seq.resetting) preventScroll(event)
-    }
-
-    const handleKeyDown = (event) => {
-      if (['ArrowDown', 'PageDown', ' ', 'Spacebar'].includes(event.key)) handleDown(event)
-    }
-
-    // A click anywhere in the hero (outside its links and buttons) also plays the next step
-    const handleClick = (event) => {
-      if (event.target.closest('a, button') || seq.running || seq.resetting) return
-      if (seq.step < MAX_STEP) runNextStep(true)
-      else resetSequence(true)
-    }
-
-    window.addEventListener('wheel', handleWheel, { passive: false })
-    window.addEventListener('touchstart', handleTouchStart, { passive: true })
-    window.addEventListener('touchmove', handleTouchMove, { passive: false })
-    window.addEventListener('keydown', handleKeyDown)
     hero.addEventListener('click', handleClick)
 
     // Warm the cache so transitions start without a pause
@@ -354,14 +294,9 @@ function Marky() {
 
     return () => {
       alive = false
-      window.removeEventListener('wheel', handleWheel)
-      window.removeEventListener('touchstart', handleTouchStart)
-      window.removeEventListener('touchmove', handleTouchMove)
-      window.removeEventListener('keydown', handleKeyDown)
       hero.removeEventListener('click', handleClick)
-      setScrollLock(false)
       // Fresh sequence if the page is mounted again
-      Object.assign(seq, { step: 0, running: false, resetting: false, complete: false, videoRunning: false })
+      Object.assign(seq, { step: 0, running: false, resetting: false, videoRunning: false })
     }
   }, [])
 
@@ -421,9 +356,10 @@ function Marky() {
                 src={frameFor(heroColor, frameState)}
                 alt={`MARKY ${colors.find((c) => c.id === heroColor).label.toLowerCase()} étape ${frameState}`}
               />
-              <span className={`marky-hint${videoRunning ? ' is-hidden' : ''}`} aria-hidden="true">
-                <i className="fa-solid fa-computer-mouse"></i>Cliquez ou faites défiler
-              </span>
+              <button type="button" className={`marky-hint${videoRunning ? ' is-hidden' : ''}`} disabled={videoRunning}>
+                <i className="fa-solid fa-hand-pointer" aria-hidden="true"></i>
+                {textStep < MAX_STEP ? 'Cliquez pour la suite' : 'Cliquez pour recommencer'}
+              </button>
               <video
                 ref={videoRef}
                 className={`marky-hero-media${showVideo ? ' is-active' : ''}`}
