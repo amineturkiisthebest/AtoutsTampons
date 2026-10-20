@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
-import './css/style.css'
+import { useRef, useState } from 'react'
+import { Link, useOutletContext } from 'react-router-dom'
+import useReveal from './hooks/useReveal.js'
 
-import logo from './assets/logo-atouts-tampons.png'
 import heroVideo from './assets/sections/hero-main-video.webm'
 import companyImg from './assets/sections/company.jpg'
 import productionImg from './assets/sections/production-01.jpg'
@@ -15,127 +15,11 @@ import brandWoodies from './assets/brands/woodies.jpg'
 import brandMaja from './assets/brands/princess-maja.png'
 import brandNio from './assets/brands/nio-school.jpg'
 
-import newsCreativeworld from './assets/news/creativeworld-2025.jpg'
-import newsStampCleaner from './assets/news/stamp-cleaner.jpg'
-import newsMake2 from './assets/news/make-2-stamp-pad.jpg'
-import newsLadot from './assets/news/new-ladot-sets.jpg'
-import newsBackToSchool from './assets/news/back-to-school-2024.png'
 
 import productPencilCase from './assets/products/marky-pencil-case-pink.jpg'
 import productLadotSet from './assets/products/ladot-set-bear-dolphin.jpg'
 import productTextileStamp from './assets/products/marky-textile-stamp-green.jpg'
 import productInkPad from './assets/products/make-1-ink-pad-uv.jpg'
-
-// Menu entries are either a label string or { label, children } for a nested menu
-const navLinks = [
-  {
-    label: 'Tampons personnalisés',
-    children: [
-      { label: 'Tampons de texte', children: ['Rectangulaires', 'Longs', 'Carrés', 'Ronds et ovales'] },
-      { label: 'Dateurs', children: ['Rectangulaires', 'Carrés', 'Ronds et ovales', 'Grandes tailles', 'Doubles dateurs'] },
-      { label: 'Numéroteurs' },
-    ],
-  },
-  {
-    label: "Prêts à l'emploi",
-    children: [
-      { label: 'Formules commerciales' },
-      { label: 'Multi-formules' },
-      { label: 'Dateurs' },
-      { label: 'Numéroteurs' },
-    ],
-  },
-  {
-    label: 'Tampons créatifs',
-    children: [
-      { label: 'Marky' },
-      { label: 'Woodies', children: ['Woodies montures', 'Woodies encriers'] },
-      { label: 'LaDot', children: ['Pierres', 'Encres & Liners & Strass', 'Coffrets'] },
-      { label: 'NIO', children: ['NIO école', 'Little NIO', 'Encriers NIO'] },
-      { label: 'Cleany' },
-      { label: 'Encriers & Tampons encreurs' },
-    ],
-  },
-  {
-    label: 'Tampons spéciaux',
-    children: ['Gamme écologique', 'Tampons de poche', 'Sécurité', 'Presses à estamper', 'Gamme EOS'],
-  },
-  {
-    label: 'Accessoires',
-    children: [
-      {
-        label: 'Plaques de texte',
-        children: [
-          'Textes pour tampons Printers',
-          'Textes pour Dateurs / Numéroteurs',
-          'Textes pour Gammes intensives',
-          'Textes pour Gammes intensives dateurs',
-          'Plaques de texte pour appareils Trodat',
-        ],
-      },
-      {
-        label: 'Encriers',
-        children: [
-          {
-            label: 'Encriers pour appareils Colop',
-            children: ['COLOP Printer / Pocket / Mini', 'COLOP Office / Classic / Expert', 'Encriers bicolores'],
-          },
-          'Encriers pour appareils Trodat',
-        ],
-      },
-      'Tampons encreurs',
-      'Encres',
-    ],
-  },
-  {
-    label: 'Gravures',
-    children: [
-      { label: 'Formats standard', children: ['Plaques boîtes aux lettres', 'Plaques de portes', 'Plaques professions libérales'] },
-      'À la ligne',
-    ],
-  },
-  {
-    label: 'Impression mobile',
-    children: ['e-mark Pro', 'e-mark go', 'e-mark create', 'Accessoires'],
-  },
-]
-
-// Dropdown entries, rendered recursively so menus can nest to any depth
-function NavMenuItems({ items, parentKey, expandedMenus, onToggle, onNavigate }) {
-  return items.map((item) => {
-    const entry = typeof item === 'string' ? { label: item } : item
-    const key = `${parentKey}/${entry.label}`
-    const expanded = expandedMenus.has(key)
-
-    return (
-      <li key={entry.label} className={`nav-dropdown__item${expanded ? ' is-expanded' : ''}`}>
-        <a href="#" onClick={onNavigate}>{entry.label}</a>
-        {entry.children && (
-          <>
-            <button
-              className="nav-expand"
-              type="button"
-              aria-label={`Sous-menu ${entry.label}`}
-              aria-expanded={expanded}
-              onClick={() => onToggle(key)}
-            >
-              <i className="fa-solid fa-chevron-right" aria-hidden="true"></i>
-            </button>
-            <ul className="nav-submenu">
-              <NavMenuItems
-                items={entry.children}
-                parentKey={key}
-                expandedMenus={expandedMenus}
-                onToggle={onToggle}
-                onNavigate={onNavigate}
-              />
-            </ul>
-          </>
-        )}
-      </li>
-    )
-  })
-}
 
 const heroPerks = [
   { icon: 'fa-solid fa-pen-ruler', label: 'Personnalisation', text: 'Texte, logo ou motif' },
@@ -166,12 +50,17 @@ const brands = [
   { className: 'nio', img: brandNio, name: 'NIO School', text: 'Petits tampons pour grandes idées' },
 ]
 
-const news = [
-  { img: newsCreativeworld, tag: '2025', title: 'COLOP à Creativeworld 2025', text: 'Retour sur notre présence au salon Creativeworld 2025 et les moments forts de cette édition.' },
-  { img: newsStampCleaner, tag: 'Nouveau', title: 'Nouveau nettoyant pour tampons COLOP', text: 'Un nettoyage efficace et doux pour prolonger la durée de vie de vos tampons.' },
-  { img: newsMake2, tag: 'MAKE', title: 'Nouvel encreur MAKE 2', text: 'Encore plus de couleurs intenses pour toutes vos créations.' },
-  { img: newsLadot, tag: 'LaDot', title: 'Nouveaux sets LaDot', text: 'Des motifs uniques et funs pour petits et grands.' },
-  { img: newsBackToSchool, tag: 'École', title: 'Rentrée scolaire 2024', text: 'Préparez la rentrée avec nos tampons pratiques et personnalisables.' },
+const colopFacts = [
+  { icon: 'fa-solid fa-earth-europe', text: 'Fabrication 100 % européenne' },
+  { icon: 'fa-solid fa-award', text: 'Qualité premium et matériaux durables' },
+  { icon: 'fa-solid fa-palette', text: "Plus de 20 ans d'expérience en tampons créatifs" },
+]
+
+const siteFeatures = [
+  { icon: 'fa-solid fa-pen-ruler', text: 'Personnalisation en ligne' },
+  { icon: 'fa-solid fa-truck-fast', text: 'Livraison en 2 à 7 jours' },
+  { icon: 'fa-solid fa-lock', text: 'Paiement sécurisé' },
+  { icon: 'fa-solid fa-headset', text: 'Service client à votre écoute' },
 ]
 
 const products = [
@@ -181,117 +70,16 @@ const products = [
   { img: productInkPad, name: 'Encreur MAKE 1 - encre UV', reviews: 54, price: 6.19, flag: 'Nouveau', flagClass: 'flag--blue' },
 ]
 
-const footerColumns = {
-  'Tampons traditionnels': ['Trouver un revendeur', 'Espace partenaire', 'Systèmes & matériaux', 'Actualités'],
-  'Impression mobile': ['Trouver un revendeur', 'Espace partenaire', 'Support', 'Blog'],
-  'Arts & Crafts': ['Espace partenaire', 'Projets'],
-  Infos: ['Mentions légales', 'Politique de confidentialité', 'Conditions générales', 'Contactez-nous'],
-}
-
-const revealSelector = '.section-intro, .brand-tile, .partnership, .news article, .product-card, .manufacturing'
+const revealSelector = '.section-intro, .brand-tile, .product-card, .manufacturing, .about-card'
 
 function Home() {
-  const [isScrolled, setIsScrolled] = useState(false)
-  const [navOpen, setNavOpen] = useState(false)
-  const [expandedMenus, setExpandedMenus] = useState(() => new Set())
-  const [searchOpen, setSearchOpen] = useState(false)
+  const { showToast, addToCart } = useOutletContext()
   const [filtersHidden, setFiltersHidden] = useState(false)
   const [activeCategory, setActiveCategory] = useState(null)
   const [wishlist, setWishlist] = useState(() => new Set())
-  const [cartTotal, setCartTotal] = useState(0)
-  const [toast, setToast] = useState({ message: '', visible: false })
 
   const rootRef = useRef(null)
-  const searchButtonRef = useRef(null)
-  const searchFormRef = useRef(null)
-  const searchInputRef = useRef(null)
-  const cartLinkRef = useRef(null)
-  const toastTimer = useRef(null)
-  const searchToggled = useRef(false)
-
-  // Header background once the page is scrolled
-  useEffect(() => {
-    const updateHeader = () => setIsScrolled(window.scrollY > 8)
-    updateHeader()
-    window.addEventListener('scroll', updateHeader, { passive: true })
-    return () => window.removeEventListener('scroll', updateHeader)
-  }, [])
-
-  // Header search bar: move focus and close on outside click
-  useEffect(() => {
-    if (searchToggled.current) {
-      if (searchOpen) searchInputRef.current?.focus()
-      else searchButtonRef.current?.focus()
-    }
-    if (!searchOpen) return
-
-    const handleClick = (event) => {
-      if (!searchFormRef.current.contains(event.target) && !searchButtonRef.current.contains(event.target)) {
-        searchToggled.current = false
-        setSearchOpen(false)
-      }
-    }
-    document.addEventListener('click', handleClick)
-    return () => document.removeEventListener('click', handleClick)
-  }, [searchOpen])
-
-  // Sub-menus are opened by tapping on mobile (hover is used on desktop)
-  const toggleMenu = (key) => {
-    setExpandedMenus((current) => {
-      const next = new Set(current)
-      if (next.has(key)) next.delete(key)
-      else next.add(key)
-      return next
-    })
-  }
-
-  const setSearch = (open) => {
-    searchToggled.current = true
-    setSearchOpen(open)
-  }
-
-  // Fade sections in as they scroll into view
-  useEffect(() => {
-    if (!('IntersectionObserver' in window)) return
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('is-visible')
-            observer.unobserve(entry.target)
-          }
-        })
-      },
-      { threshold: 0.12 }
-    )
-
-    const targets = rootRef.current.querySelectorAll(revealSelector)
-    // Drop the reveal classes afterwards so hover transforms work again
-    const handleTransitionEnd = (event) => event.currentTarget.classList.remove('reveal', 'is-visible')
-
-    targets.forEach((element) => {
-      element.classList.add('reveal')
-      element.addEventListener('transitionend', handleTransitionEnd, { once: true })
-      observer.observe(element)
-    })
-
-    return () => {
-      observer.disconnect()
-      targets.forEach((element) => {
-        element.removeEventListener('transitionend', handleTransitionEnd)
-        element.classList.remove('reveal', 'is-visible')
-      })
-    }
-  }, [])
-
-  useEffect(() => () => clearTimeout(toastTimer.current), [])
-
-  const showToast = (message) => {
-    setToast({ message, visible: true })
-    clearTimeout(toastTimer.current)
-    toastTimer.current = setTimeout(() => setToast((current) => ({ ...current, visible: false })), 2200)
-  }
+  useReveal(rootRef, revealSelector)
 
   const toggleWishlist = (event, index) => {
     event.stopPropagation()
@@ -305,18 +93,9 @@ function Home() {
     showToast(active ? 'Ajouté aux favoris' : 'Retiré des favoris')
   }
 
-  const addToCart = (event, product) => {
+  const handleAddToCart = (event, product) => {
     event.stopPropagation()
-    setCartTotal((total) => total + 1)
-
-    const cartLink = cartLinkRef.current
-    if (cartLink) {
-      cartLink.classList.remove('bump')
-      void cartLink.offsetWidth // restart the animation
-      cartLink.classList.add('bump')
-    }
-
-    showToast(`« ${product.name} » ajouté au panier`)
+    addToCart(product.name)
   }
 
   const selectCategory = (event, index) => {
@@ -325,292 +104,155 @@ function Home() {
   }
 
   return (
-    <div ref={rootRef}>
-      <header className={`site-header${isScrolled ? ' is-scrolled' : ''}`}>
-        <div className="header-grid">
-          <button
-            className="nav-toggle"
-            type="button"
-            aria-label={navOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
-            aria-expanded={navOpen}
-            onClick={() => setNavOpen((open) => !open)}
-          >
-            <span></span><span></span><span></span>
-          </button>
-          <a className="brand" href="#" aria-label="Atouts Tampons - Accueil">
-            <img src={logo} alt="Atouts Tampons" width="600" height="157" />
-          </a>
-          <nav className={`main-nav${navOpen ? ' open' : ''}`} aria-label="Navigation principale">
-            {navLinks.map((link, index) => (
-              <div
-                key={link.label}
-                className={`nav-item${index >= navLinks.length - 3 ? ' nav-item--end' : ''}${expandedMenus.has(link.label) ? ' is-expanded' : ''}`}
-              >
-                <a className={link.active ? 'active' : undefined} href="#" onClick={() => setNavOpen(false)}>
-                  {link.label}
-                </a>
-                {link.children && (
-                  <>
-                    <button
-                      className="nav-expand"
-                      type="button"
-                      aria-label={`Sous-menu ${link.label}`}
-                      aria-expanded={expandedMenus.has(link.label)}
-                      onClick={() => toggleMenu(link.label)}
-                    >
-                      <i className="fa-solid fa-chevron-down" aria-hidden="true"></i>
-                    </button>
-                    <ul className="nav-dropdown">
-                      <NavMenuItems
-                        items={link.children}
-                        parentKey={link.label}
-                        expandedMenus={expandedMenus}
-                        onToggle={toggleMenu}
-                        onNavigate={() => setNavOpen(false)}
-                      />
-                    </ul>
-                  </>
-                )}
-              </div>
-            ))}
-          </nav>
-          <div className="header-actions">
-            <button
-              ref={searchButtonRef}
-              className="search-button"
-              type="button"
-              aria-label="Rechercher"
-              aria-controls="header-search"
-              aria-expanded={searchOpen}
-              onClick={() => setSearch(true)}
-            >
-              <i className="fa-solid fa-magnifying-glass"></i>
-            </button>
-            <a ref={cartLinkRef} className="cart-link" href="#" aria-label="Mon panier" title="Mon panier">
-              <i className="fa-solid fa-cart-shopping" aria-hidden="true"></i>
-              <span className="cart-count" hidden={cartTotal === 0}>{cartTotal}</span>
-            </a>
-            <a className="signin-link" href="#" aria-label="Se connecter">
-              <i className="fa-regular fa-user" aria-hidden="true"></i><span>Se connecter</span>
-            </a>
+    <main ref={rootRef}>
+      <section className="hero">
+        <div className="hero__inner">
+          <div className="hero-copy">
+            <span className="hero-kicker">Bienvenue chez Atouts Tampons</span>
+            <p>
+              Tampons personnalisés, prêts à l'emploi ou créatifs : créez le tampon qui vous ressemble en quelques clics
+              et recevez-le directement chez vous.
+            </p>
+            <div className="hero-actions">
+              <a className="btn btn--arrow" href="#">Découvrir la boutique</a>
+            </div>
+            <ul className="hero-perks">
+              {heroPerks.map((perk) => (
+                <li key={perk.label}>
+                  <i className={perk.icon} aria-hidden="true"></i>
+                  <span><strong>{perk.label}</strong>{perk.text}</span>
+                </li>
+              ))}
+            </ul>
           </div>
-          <form
-            ref={searchFormRef}
-            className="header-search"
-            id="header-search"
-            role="search"
-            action=""
-            method="get"
-            hidden={!searchOpen}
-            onKeyDown={(event) => event.key === 'Escape' && setSearch(false)}
-          >
-            <i className="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-            <input
-              ref={searchInputRef}
-              type="search"
-              name="q"
-              placeholder="Rechercher un tampon, un encreur, une marque…"
-              aria-label="Rechercher sur le site"
-              autoComplete="off"
-            />
-            <button className="header-search__close" type="button" aria-label="Fermer la recherche" onClick={() => setSearch(false)}>
-              <i className="fa-solid fa-xmark"></i>
-            </button>
-          </form>
+          <div className="hero-art">
+            <video className="hero-video" autoPlay muted loop playsInline aria-label="Vidéo des produits COLOP Arts & Crafts">
+              <source src={heroVideo} type="video/webm" />
+            </video>
+          </div>
         </div>
-      </header>
+      </section>
 
-      <main>
-        <section className="hero">
-          <div className="hero__inner">
-            <div className="hero-copy">
-              <span className="hero-kicker">Bienvenue chez Atouts Tampons</span>
-              <h1>Votre tampon, <span>à votre image</span></h1>
-              <p>
-                Tampons personnalisés, prêts à l'emploi ou créatifs : créez le tampon qui vous ressemble en quelques clics
-                et recevez-le directement chez vous.
-              </p>
-              <div className="hero-actions">
-                <a className="btn btn--arrow" href="#">Créer mon tampon</a>
-                <a className="btn btn--ghost btn--arrow" href="#collection">Découvrir la boutique</a>
-              </div>
-              <ul className="hero-perks">
-                {heroPerks.map((perk) => (
-                  <li key={perk.label}>
-                    <i className={perk.icon} aria-hidden="true"></i>
-                    <span><strong>{perk.label}</strong>{perk.text}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="hero-art">
-              <video className="hero-video" autoPlay muted loop playsInline aria-label="Vidéo des produits COLOP Arts & Crafts">
-                <source src={heroVideo} type="video/webm" />
-              </video>
-            </div>
+
+      <div className="after-universe">
+
+
+        <section className="products">
+          <div className="section-heading">
+            <h2>Meilleures ventes</h2>
+          </div>
+          <div className="product-grid">
+            {products.map((product, index) => {
+              const inWishlist = wishlist.has(index)
+              return (
+                <article key={product.name} className="product-card">
+                  <button
+                    className="wishlist-button"
+                    type="button"
+                    aria-label={inWishlist ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+                    aria-pressed={inWishlist}
+                    onClick={(event) => toggleWishlist(event, index)}
+                  >
+                    <i className={`${inWishlist ? 'fa-solid' : 'fa-regular'} fa-heart`}></i>
+                  </button>
+                  <div className="product-image">
+                    <img src={product.img} alt={product.name} />
+                  </div>
+                  {product.flag && <span className={`flag ${product.flagClass}`}>{product.flag}</span>}
+                  <h3>{product.name}</h3>
+                  <div className="rating" aria-label="Note 5 sur 5">
+                    <span>★★★★★</span><small>({product.reviews})</small>
+                  </div>
+                  <p className="price">€{product.price.toFixed(2)}</p>
+                  <p className="meta">TVA incluse · délai de livraison 2 à 7 jours ouvrables</p>
+                  <button className="add-to-cart" type="button" onClick={(event) => handleAddToCart(event, product)}>
+                    <i className="fa-solid fa-bag-shopping" aria-hidden="true"></i>Ajouter au panier
+                  </button>
+                </article>
+              )
+            })}
+          </div>
+          <a className="products-more" href="#">Voir tous les produits</a>
+        </section>
+
+        <section className="manufacturing">
+          <div className="manufacturing__image">
+            <img src={productionImg} alt="Fabrication de tampons COLOP" />
+          </div>
+          <div>
+            <h2>Fabrication de tampons</h2>
+            <p>
+              En tant que l'un des plus grands fabricants européens de produits de tampons créatifs, nous participons
+              depuis plus de 20 ans au développement, au marketing et à la production de tampons à motifs, de tampons
+              de loisirs créatifs et de tampons pour enfants.
+            </p>
+            <p>
+              Les tampons sont des ambassadeurs communicatifs, créatifs et faciles à utiliser pour votre marque.
+              Tampons en bois classiques, tampons pour enfants, tampons de loisirs créatifs, encreurs ou displays
+              complets : nous réalisons vos idées rapidement et professionnellement.
+            </p>
           </div>
         </section>
 
-        <div className={`layout${filtersHidden ? ' filters-hidden' : ''}`} id="collection">
-          <aside className="filters" aria-label="Catégories de la boutique">
-            <button
-              className="filter-toggle"
-              type="button"
-              aria-label={filtersHidden ? 'Afficher les filtres' : 'Masquer les filtres'}
-              aria-expanded={!filtersHidden}
-              onClick={() => setFiltersHidden((hidden) => !hidden)}
-            ></button>
-            <div className="filters-panel">
-              <div className="filter-brand">
-                <strong>Crafty Labeler</strong>
-                <span>Arts &amp; Crafts</span>
+        <section className="about" aria-labelledby="about-title">
+          <div className="about__intro">
+            <span className="eyebrow">Qui sommes-nous ?</span>
+            <h2 id="about-title">COLOP &amp; Atouts Tampons</h2>
+            <p>
+              Un fabricant européen reconnu et une boutique en ligne pensée pour vous : découvrez qui se cache derrière
+              vos tampons.
+            </p>
+          </div>
+
+          <div className="about-grid">
+            <article className="about-card">
+              <div className="about-card__image">
+                <img src={companyImg} alt="Produits COLOP" />
               </div>
-              <h2>Filtrer par</h2>
-              <h3><i className="fa-solid fa-sliders" aria-hidden="true"></i>Options d'achat</h3>
-              <h4>Catégorie</h4>
-              <ul>
-                {categories.map((category, index) => (
-                  <li
-                    key={category.name}
-                    className={activeCategory === index ? 'is-active' : undefined}
-                    onClick={(event) => selectCategory(event, index)}
-                  >
-                    <i className={`option-icon ${category.icon}`} aria-hidden="true"></i>
-                    <a href="#">{category.name}</a>
-                    <span>{category.count}</span>
-                  </li>
-                ))}
-              </ul>
-              <a className="btn view-all" href="#"><i className="fa-solid fa-bag-shopping" aria-hidden="true"></i>Voir tous les produits</a>
-            </div>
-          </aside>
+              <div className="about-card__body">
+                <span className="about-card__label"><i className="fa-solid fa-industry" aria-hidden="true"></i>Le fabricant</span>
+                <h3>COLOP, l'expert européen du tampon</h3>
+                <p>
+                  Entreprise familiale autrichienne, COLOP conçoit et fabrique des tampons encreurs, dateurs,
+                  numéroteurs et tampons créatifs reconnus pour leur fiabilité. Chaque produit allie savoir-faire
+                  industriel, design moderne et qualité premium.
+                </p>
+                <ul className="about-list">
+                  {colopFacts.map((fact) => (
+                    <li key={fact.text}>
+                      <i className={fact.icon} aria-hidden="true"></i>{fact.text}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </article>
 
-          <div className="content">
-            <section className="section-intro">
-              <h2>Découvrez notre univers <span>Arts &amp; Crafts</span></h2>
-              <p>
-                Nous proposons une large gamme de tampons et d'encreurs pour de nombreuses occasions et utilisations :
-                des tampons en bois soigneusement fabriqués, des tampons ingénieux pour le lavage des mains, des tampons
-                auto-encreurs de styles variés et des tampons de tatouages temporaires primés.
-              </p>
-            </section>
-
-            <section className="brand-grid" aria-label="Marques Arts & Crafts">
-              {brands.map((brand) => (
-                <a key={brand.className} className={`brand-tile ${brand.className}`} href="#">
-                  <img src={brand.img} alt="" />
-                  <strong>{brand.name}</strong>
-                  <span>{brand.text}</span>
-                  <em>Explorer</em>
-                </a>
-              ))}
-            </section>
+            <article className="about-card about-card--site">
+              <div className="about-card__body">
+                <span className="about-card__label"><i className="fa-solid fa-store" aria-hidden="true"></i>La boutique en ligne</span>
+                <h3>Atouts Tampons, vos tampons COLOP en ligne</h3>
+                <p>
+                  Atouts Tampons vous donne accès à toute la gamme COLOP : tampons personnalisés, modèles prêts à
+                  l'emploi, tampons créatifs, accessoires et gravures. Composez votre tampon en ligne, validez votre
+                  aperçu et recevez-le rapidement chez vous.
+                </p>
+                <ul className="about-list about-list--grid">
+                  {siteFeatures.map((feature) => (
+                    <li key={feature.text}>
+                      <i className={feature.icon} aria-hidden="true"></i>{feature.text}
+                    </li>
+                  ))}
+                </ul>
+                <div className="about-actions">
+                  <a className="btn btn--arrow" href="#">Créer mon tampon</a>
+                  <Link className="btn btn--ghost" to="/a-propos">En savoir plus sur nous</Link>
+                </div>
+              </div>
+            </article>
           </div>
-        </div>
-
-        <div className="after-universe">
-
-          <section className="news">
-            <div className="section-heading">
-              <h2>Actualités</h2>
-              <a href="#">Voir toutes les actualités</a>
-            </div>
-            <div className="news-grid">
-              {news.map((item, index) => (
-                <article key={item.title} className={index === 0 ? 'featured-news' : ''}>
-                  <img src={item.img} alt="" />
-                  <span className="tag">{item.tag}</span>
-                  <h3>{item.title}</h3>
-                  <p>{item.text}</p>
-                  <a href="#">Lire plus</a>
-                </article>
-              ))}
-            </div>
-          </section>
-
-          <section className="products">
-            <div className="section-heading">
-              <h2>Meilleures ventes</h2>
-            </div>
-            <div className="product-grid">
-              {products.map((product, index) => {
-                const inWishlist = wishlist.has(index)
-                return (
-                  <article key={product.name} className="product-card">
-                    <button
-                      className="wishlist-button"
-                      type="button"
-                      aria-label={inWishlist ? 'Retirer des favoris' : 'Ajouter aux favoris'}
-                      aria-pressed={inWishlist}
-                      onClick={(event) => toggleWishlist(event, index)}
-                    >
-                      <i className={`${inWishlist ? 'fa-solid' : 'fa-regular'} fa-heart`}></i>
-                    </button>
-                    <div className="product-image">
-                      <img src={product.img} alt={product.name} />
-                    </div>
-                    {product.flag && <span className={`flag ${product.flagClass}`}>{product.flag}</span>}
-                    <h3>{product.name}</h3>
-                    <div className="rating" aria-label="Note 5 sur 5">
-                      <span>★★★★★</span><small>({product.reviews})</small>
-                    </div>
-                    <p className="price">€{product.price.toFixed(2)}</p>
-                    <p className="meta">TVA incluse · délai de livraison 2 à 7 jours ouvrables</p>
-                    <button className="add-to-cart" type="button" onClick={(event) => addToCart(event, product)}>
-                      <i className="fa-solid fa-bag-shopping" aria-hidden="true"></i>Ajouter au panier
-                    </button>
-                  </article>
-                )
-              })}
-            </div>
-            <a className="products-more" href="#">Voir tous les produits</a>
-          </section>
-
-          <section className="manufacturing">
-            <div className="manufacturing__image">
-              <img src={productionImg} alt="Fabrication de tampons COLOP" />
-            </div>
-            <div>
-              <h2>Fabrication de tampons</h2>
-              <p>
-                En tant que l'un des plus grands fabricants européens de produits de tampons créatifs, nous participons
-                depuis plus de 20 ans au développement, au marketing et à la production de tampons à motifs, de tampons
-                de loisirs créatifs et de tampons pour enfants.
-              </p>
-              <p>
-                Les tampons sont des ambassadeurs communicatifs, créatifs et faciles à utiliser pour votre marque.
-                Tampons en bois classiques, tampons pour enfants, tampons de loisirs créatifs, encreurs ou displays
-                complets : nous réalisons vos idées rapidement et professionnellement.
-              </p>
-            </div>
-          </section>
-        </div>
-      </main>
-
-      <footer className="footer">
-        <div className="footer-grid">
-          {Object.entries(footerColumns).map(([title, links]) => (
-            <div key={title}>
-              <h3>{title}</h3>
-              {links.map((link) => (
-                <a key={link} href="#">{link}</a>
-              ))}
-            </div>
-          ))}
-        </div>
-        <div className="footer-bottom">
-          <div className="copyright">&copy; {new Date().getFullYear()} by COLOP Stempelerzeugung Skopek Gesellschaft m.b.H. &amp; Co. KG.</div>
-          <div className="social-row">
-            <a href="#" aria-label="Facebook"><i className="fa-brands fa-facebook-f"></i></a>
-            <a href="#" aria-label="Instagram"><i className="fa-brands fa-instagram"></i></a>
-            <a href="#" aria-label="Pinterest"><i className="fa-brands fa-pinterest-p"></i></a>
-            <a href="#" aria-label="YouTube"><i className="fa-brands fa-youtube"></i></a>
-          </div>
-        </div>
-      </footer>
-
-      <div className={`toast${toast.visible ? ' is-visible' : ''}`} role="status" aria-live="polite">{toast.message}</div>
-    </div>
+        </section>
+      </div>
+    </main>
   )
 }
 
