@@ -11,6 +11,7 @@ export const navLinks = [
   },
   {
     label: "Prêts à l'emploi",
+    to: '/prets-a-l-emploi',
     children: [
       { label: 'Formules commerciales' },
       { label: 'Multi-formules' },
@@ -20,6 +21,7 @@ export const navLinks = [
   },
   {
     label: 'Tampons créatifs',
+    to: '/tampons-creatifs',
     children: [
       { label: 'Marky', to: '/marky' },
       { label: 'Woodies', to: '/woodies', children: ['Woodies montures', 'Woodies encriers'] },
@@ -31,10 +33,12 @@ export const navLinks = [
   },
   {
     label: 'Tampons spéciaux',
+    to: '/tampons-speciaux',
     children: ['Gamme écologique', 'Tampons de poche', 'Sécurité', 'Presses à estamper', 'Gamme EOS'],
   },
   {
     label: 'Accessoires',
+    to: '/accessoires',
     children: [
       {
         label: 'Plaques de texte',
@@ -64,6 +68,7 @@ export const navLinks = [
   },
   {
     label: 'Gravures',
+    to: '/gravures',
     children: [
       { label: 'Formats standard', to: '/formats-standard', children: ['Plaques boîtes aux lettres', 'Plaques de portes', 'Plaques professions libérales'] },
       'À la ligne',
@@ -71,6 +76,7 @@ export const navLinks = [
   },
   {
     label: 'Impression mobile',
+    to: '/impression-mobile',
     children: ['e-mark Pro', 'e-mark go', 'e-mark create', 'Accessoires'],
   },
 ]

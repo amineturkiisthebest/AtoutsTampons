@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { Link, useOutletContext } from 'react-router-dom'
 import useReveal from './hooks/useReveal.js'
+import ProductShowcase from './components/ProductShowcase.jsx'
 
 import heroVideo from './assets/sections/hero-main-video.webm'
 import companyImg from './assets/sections/company.jpg'
@@ -105,6 +106,8 @@ function Home() {
 
   return (
     <main ref={rootRef}>
+      <ProductShowcase />
+
       <section className="hero">
         <div className="hero__inner">
           <div className="hero-copy">
@@ -175,24 +178,6 @@ function Home() {
           <a className="products-more" href="#">Voir tous les produits</a>
         </section>
 
-        <section className="manufacturing">
-          <div className="manufacturing__image">
-            <img src={productionImg} alt="Fabrication de tampons COLOP" />
-          </div>
-          <div>
-            <h2>Fabrication de tampons</h2>
-            <p>
-              En tant que l'un des plus grands fabricants européens de produits de tampons créatifs, nous participons
-              depuis plus de 20 ans au développement, au marketing et à la production de tampons à motifs, de tampons
-              de loisirs créatifs et de tampons pour enfants.
-            </p>
-            <p>
-              Les tampons sont des ambassadeurs communicatifs, créatifs et faciles à utiliser pour votre marque.
-              Tampons en bois classiques, tampons pour enfants, tampons de loisirs créatifs, encreurs ou displays
-              complets : nous réalisons vos idées rapidement et professionnellement.
-            </p>
-          </div>
-        </section>
 
         <section className="about" aria-labelledby="about-title">
           <div className="about__intro">

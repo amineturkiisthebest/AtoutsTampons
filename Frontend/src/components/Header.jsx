@@ -167,9 +167,9 @@ function Header({ cartTotal, cartLinkRef }) {
             <i className="fa-solid fa-cart-shopping" aria-hidden="true"></i>
             <span className="cart-count" hidden={cartTotal === 0}>{cartTotal}</span>
           </a>
-          <a className="signin-link" href="#" aria-label="Se connecter">
+          <Link className="signin-link" to="/connexion" aria-label="Se connecter">
             <i className="fa-regular fa-user" aria-hidden="true"></i><span>Se connecter</span>
-          </a>
+          </Link>
         </div>
         <form
           ref={searchFormRef}

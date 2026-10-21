@@ -12,6 +12,13 @@ import PlaquesDeTexte from './PlaquesDeTexte.jsx'
 import Encriers from './Encriers.jsx'
 import FormatsStandard from './FormatsStandard.jsx'
 import Marky from './Marky.jsx'
+import Login from './Login.jsx'
+import PretsALEmploi from './PretsALEmploi.jsx'
+import TamponsCreatifs from './TamponsCreatifs.jsx'
+import TamponsSpeciaux from './TamponsSpeciaux.jsx'
+import Accessoires from './Accessoires.jsx'
+import Gravures from './Gravures.jsx'
+import ImpressionMobile from './ImpressionMobile.jsx'
 
 function App() {
   return (
@@ -21,6 +28,12 @@ function App() {
           <Route index element={<Home />} />
           <Route path="a-propos" element={<About />} />
           <Route path="tampons-p" element={<TamponsP />} />
+          <Route path="prets-a-l-emploi" element={<PretsALEmploi />} />
+          <Route path="tampons-creatifs" element={<TamponsCreatifs />} />
+          <Route path="tampons-speciaux" element={<TamponsSpeciaux />} />
+          <Route path="accessoires" element={<Accessoires />} />
+          <Route path="gravures" element={<Gravures />} />
+          <Route path="impression-mobile" element={<ImpressionMobile />} />
           <Route path="tampons-t" element={<TamponsT />} />
           <Route path="dateurs" element={<Dateurs />} />
           <Route path="woodies" element={<Woodies />} />
@@ -30,6 +43,7 @@ function App() {
           <Route path="encriers" element={<Encriers />} />
           <Route path="formats-standard" element={<FormatsStandard />} />
           <Route path="marky" element={<Marky />} />
+          <Route path="connexion" element={<Login />} />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -12,8 +12,9 @@ const defaultSteps = [
 const revealSelector = '.stamp-option, .steps__item, .stamp-help'
 
 /**
- * Page for one entry of a top-level menu (e.g. Tampons créatifs › Woodies).
- * The cards come from that entry's sub-menu; `options` maps each label to { icon, text, uses }.
+ * Page for a menu entry: a top-level menu (e.g. Tampons créatifs) when `category` is omitted,
+ * or one entry of it (e.g. Tampons créatifs › Woodies).
+ * The cards come from that entry's sub-menu; `options` maps each label to { icon, text, uses } or { img, alt, text, uses }.
  * When `uses` is omitted, the option's own sub-menu entries are shown as tags instead.
  * `image` and `accent` are optional: a hero photo and a brand colour for icons and tags.
  */
@@ -27,12 +28,16 @@ function CategoryPage({
   accent,
   steps = defaultSteps,
   helpText,
+  kicker,
+  sectionTitle,
 }) {
   const rootRef = useRef(null)
   useReveal(rootRef, revealSelector)
 
   const parentMenu = navLinks.find((link) => link.label === parent)
-  const category = parentMenu.children.find((item) => typeof item === 'object' && item.label === categoryLabel)
+  const category = categoryLabel
+    ? parentMenu.children.find((item) => typeof item === 'object' && item.label === categoryLabel)
+    : parentMenu
   const items = category.children.map((child) => {
     const entry = typeof child === 'string' ? { label: child } : child
     const subOptions = entry.children?.map((sub) => (typeof sub === 'string' ? sub : sub.label))
@@ -49,11 +54,15 @@ function CategoryPage({
             <nav className="breadcrumb" aria-label="Fil d'Ariane">
               <Link to="/">Accueil</Link>
               <span aria-hidden="true">/</span>
-              {parentMenu.to ? <Link to={parentMenu.to}>{parentMenu.label}</Link> : <span>{parentMenu.label}</span>}
-              <span aria-hidden="true">/</span>
+              {category !== parentMenu && (
+                <>
+                  {parentMenu.to ? <Link to={parentMenu.to}>{parentMenu.label}</Link> : <span>{parentMenu.label}</span>}
+                  <span aria-hidden="true">/</span>
+                </>
+              )}
               <span aria-current="page">{category.label}</span>
             </nav>
-            <span className="hero-kicker">{parentMenu.label}</span>
+            <span className="hero-kicker">{kicker ?? parentMenu.label}</span>
             <p>{intro}</p>
           </div>
           {image && (
@@ -67,16 +76,22 @@ function CategoryPage({
       <div className="after-universe">
         <section className="stamp-section" aria-labelledby="options-title">
           <div className="section-heading">
-            <h2 id="options-title">La gamme {category.label}</h2>
+            <h2 id="options-title">{sectionTitle ?? `La gamme ${category.label}`}</h2>
           </div>
           <div className={`stamp-options ${columns}`}>
             {items.map((item) => (
               <article key={item.label} className="stamp-option">
-                <div className="stamp-option__preview stamp-option__preview--icon">
-                  <span className="brand-icon" aria-hidden="true">
-                    <i className={item.icon}></i>
-                  </span>
-                </div>
+                {item.img ? (
+                  <div className="stamp-option__preview stamp-option__preview--photo">
+                    <img src={item.img} alt={item.alt ?? item.label} />
+                  </div>
+                ) : (
+                  <div className="stamp-option__preview stamp-option__preview--icon">
+                    <span className="brand-icon" aria-hidden="true">
+                      <i className={item.icon}></i>
+                    </span>
+                  </div>
+                )}
                 <div className="stamp-option__body">
                   <h3>{item.label}</h3>
                   <p>{item.text}</p>
