@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { Link, useOutletContext } from 'react-router-dom'
 import useReveal from './hooks/useReveal.js'
-import ProductShowcase from './components/ProductShowcase.jsx'
+import ProductHero from './components/ProductHero.jsx'
 
 import heroVideo from './assets/sections/hero-main-video.webm'
 import companyImg from './assets/sections/company.jpg'
@@ -106,7 +106,7 @@ function Home() {
 
   return (
     <main ref={rootRef}>
-      <ProductShowcase />
+      <ProductHero />
 
       <section className="hero">
         <div className="hero__inner">
