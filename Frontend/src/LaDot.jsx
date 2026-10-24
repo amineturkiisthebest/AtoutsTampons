@@ -1,6 +1,6 @@
 import CategoryPage from './components/CategoryPage.jsx'
 import { creativeSteps } from './data/steps.js'
-import ladotImg from './assets/brands/cutouts/ladot.webp'
+import ladotImg from './assets/brands/cutouts/ladot.png'
 
 const options = {
   Pierres: {

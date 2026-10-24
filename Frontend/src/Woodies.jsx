@@ -1,6 +1,6 @@
 import CategoryPage from './components/CategoryPage.jsx'
 import { creativeSteps } from './data/steps.js'
-import woodiesImg from './assets/brands/cutouts/woodies.webp'
+import woodiesImg from './assets/brands/cutouts/woodies.png'
 
 const options = {
   'Woodies montures': {

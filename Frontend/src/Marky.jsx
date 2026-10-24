@@ -2,6 +2,18 @@ import { useEffect, useRef, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import useReveal from './hooks/useReveal.js'
 
+import refillKitImg from './assets/marky/products/refill-kit.png'
+import ironOnLabelsImg from './assets/marky/products/iron-on-labels.jpg'
+import penLabelsImg from './assets/marky/products/pen-labels.jpg'
+import dishwasherLabelsImg from './assets/marky/products/dishwasher-labels.jpg'
+import backpackPinkImg from './assets/marky/products/backpack-pink.jpg'
+import backpackGreenImg from './assets/marky/products/backpack-green.jpg'
+import backpackBlueImg from './assets/marky/products/backpack-blue.jpg'
+import pencilCasePinkImg from './assets/products/marky-pencil-case-pink.jpg'
+import pencilCaseGreenImg from './assets/marky/products/pencil-case-green.jpg'
+import pencilCaseBlueImg from './assets/marky/products/pencil-case-blue.jpg'
+import sosWristbandsImg from './assets/marky/products/sos-wristbands.jpg'
+
 // Hero keyframes ({color}-{state}.webp) and the videos that animate from one state to the next ({color}{from}-{to}.webm)
 const frames = {}
 for (const [path, url] of Object.entries(import.meta.glob('./assets/marky/frames/*.webp', { eager: true, import: 'default' }))) {
@@ -132,6 +144,38 @@ function ColorSwatches({ options, value, onChange, className = '' }) {
   )
 }
 
+function AccessoryCard({ product, onAdd }) {
+  const colorOptions = Object.keys(product.images).filter((key) => key !== 'default')
+  const [color, setColor] = useState(colorOptions[0])
+  const image = product.images[color] ?? product.images.default
+
+  return (
+    <article className="marky-card">
+      <div className="marky-card__image">
+        <img src={image} alt={product.name} />
+        {colorOptions.length > 0 && (
+          <ColorSwatches className="marky-card__colors" options={colorOptions} value={color} onChange={setColor} />
+        )}
+      </div>
+      <div className="marky-card__content">
+        <h3>{product.name}</h3>
+        <p className="marky-card__desc">{product.desc}</p>
+        <ul className="marky-card__bullets">
+          {product.bullets.map((bullet) => (
+            <li key={bullet}>{bullet}</li>
+          ))}
+        </ul>
+        <div className="marky-card__bottom">
+          <span className="marky-price">{formatPrice(product.price)}</span>
+          <button className="marky-card__add" type="button" aria-label="Ajouter au panier" onClick={() => onAdd(product.name)}>
+            <i className="fa-solid fa-cart-plus" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+    </article>
+  )
+}
+
 function Marky() {
   const { addToCart } = useOutletContext()
 
@@ -240,25 +284,15 @@ function Marky() {
 
     hero.addEventListener('click', handleClick)
 
-    // Warm the cache so transitions start without a pause. Waits until the page is idle so it doesn't compete
-    // with the first paint, and fetches the current colour before the others.
-    const warmColor = (color) => {
-      Object.values(frames[color] ?? {}).forEach((src) => loadImage(src))
-      Object.values(transitions[color] ?? {}).forEach((src) => {
-        const probe = document.createElement('video')
-        probe.preload = 'auto'
-        probe.src = src
-      })
-    }
-    const whenIdle = window.requestIdleCallback ?? ((callback) => window.setTimeout(callback, 1200))
-    const cancelIdle = window.cancelIdleCallback ?? window.clearTimeout
-    const idleId = whenIdle(() => {
-      warmColor(seq.color)
-      Object.keys(frames).filter((color) => color !== seq.color).forEach(warmColor)
-    })
+    // Warm the cache so transitions start without a pause
+    Object.values(frames).forEach((states) => Object.values(states).forEach((src) => loadImage(src)))
+    Object.values(transitions).forEach((states) => Object.values(states).forEach((src) => {
+      const probe = document.createElement('video')
+      probe.preload = 'auto'
+      probe.src = src
+    }))
 
     return () => {
-      cancelIdle(idleId)
       alive = false
       hero.removeEventListener('click', handleClick)
       // Fresh sequence if the page is mounted again
@@ -358,7 +392,7 @@ function Marky() {
         <section className="marky-featured">
           <div className="marky-featured__grid">
             <div className="marky-featured__image">
-              <img loading="lazy" decoding="async" src={frameFor(stampColor, 0)} alt={`Tampon textile MARKY ${colors.find((c) => c.id === stampColor).label.toLowerCase()}`} />
+              <img src={frameFor(stampColor, 0)} alt={`Tampon textile MARKY ${colors.find((c) => c.id === stampColor).label.toLowerCase()}`} />
               <div className="marky-featured__picker">
                 <span>Couleur du tampon :</span>
                 <ColorSwatches options={colors.map((c) => c.id)} value={stampColor} onChange={setStampColor} />

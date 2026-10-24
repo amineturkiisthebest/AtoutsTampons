@@ -1,20 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useOutletContext } from 'react-router-dom'
 
-import printerImg from '../assets/showcase/printer-20.webp'
-import markyImg from '../assets/showcase/marky-diy.webp'
-import ladotImg from '../assets/showcase/ladot-papillon.webp'
-import woodiesImg from '../assets/showcase/woodies-bateau.webp'
-import emarkImg from '../assets/showcase/emark.webp'
-import inkPadImg from '../assets/showcase/encrier-e05.webp'
+import printerImg from '../assets/showcase/printer-20.png'
+import markyImg from '../assets/showcase/marky-diy.png'
+import ladotImg from '../assets/showcase/ladot-papillon.png'
+import woodiesImg from '../assets/showcase/woodies-bateau.png'
+import emarkImg from '../assets/showcase/emark.png'
+import inkPadImg from '../assets/showcase/encrier-e05.png'
 
 // Products from the atoutstampons.fr catalogue. `accent` tints the whole section when the product is selected,
 // `particles` are the icons that burst from a click and float around the product.
-// `action`: 'cart' for ready-made items, 'personalize' for stamps that need the customer's text, 'discover' for big purchases.
 const products = [
   {
     name: 'COLOP Printer 20',
-    action: 'personalize',
     category: 'Tampons de texte',
     img: printerImg,
     accent: '#ef1d2a',
@@ -27,7 +25,6 @@ const products = [
   },
   {
     name: 'Marky DIY - vert',
-    action: 'cart',
     category: 'Marky',
     img: markyImg,
     accent: '#5fb32a',
@@ -40,7 +37,6 @@ const products = [
   },
   {
     name: 'Pierre LaDot - Papillon',
-    action: 'cart',
     category: 'LaDot',
     img: ladotImg,
     accent: '#d9628f',
@@ -53,7 +49,6 @@ const products = [
   },
   {
     name: 'Woodies - Bateau à voile',
-    action: 'cart',
     category: 'Woodies',
     img: woodiesImg,
     accent: '#b07d4b',
@@ -66,7 +61,6 @@ const products = [
   },
   {
     name: 'COLOP e-mark',
-    action: 'discover',
     category: 'Impression mobile',
     img: emarkImg,
     accent: '#16a394',
@@ -79,7 +73,6 @@ const products = [
   },
   {
     name: 'COLOP Encrier E/05',
-    action: 'cart',
     category: 'Encriers',
     img: inkPadImg,
     accent: '#3a4f7a',
@@ -197,21 +190,10 @@ function ProductHero() {
             <span className="ph-category">{product.category}</span>
             <p>{product.tagline}</p>
             <div className="ph-actions">
-              {product.action === 'cart' ? (
-                <>
-                  <button className="ph-shop" type="button" onClick={() => addToCart(product.name)}>
-                    Ajouter au panier <span className="ph-shop__plus" aria-hidden="true"><i className="fa-solid fa-plus"></i></span>
-                  </button>
-                  <Link className="ph-link" to={product.to}>Voir la gamme</Link>
-                </>
-              ) : (
-                <Link className="ph-shop" to={product.to}>
-                  {product.action === 'personalize' ? 'Personnaliser' : 'Découvrir'}
-                  <span className="ph-shop__plus" aria-hidden="true">
-                    <i className={product.action === 'personalize' ? 'fa-solid fa-pen' : 'fa-solid fa-arrow-right'}></i>
-                  </span>
-                </Link>
-              )}
+              <button className="ph-shop" type="button" onClick={() => addToCart(product.name)}>
+                Ajouter au panier <span className="ph-shop__plus" aria-hidden="true"><i className="fa-solid fa-plus"></i></span>
+              </button>
+              <Link className="ph-link" to={product.to}>Voir la gamme</Link>
             </div>
           </div>
         </div>
@@ -228,7 +210,7 @@ function ProductHero() {
             </span>
           ))}
           <div className="ph-product">
-            <img loading="lazy" decoding="async" key={product.img} className={`ph-product__img ${phase}`} src={product.img} alt={product.name} />
+            <img key={product.img} className={`ph-product__img ${phase}`} src={product.img} alt={product.name} />
           </div>
         </div>
 
@@ -245,7 +227,7 @@ function ProductHero() {
                   onClick={() => select(productIndex)}
                   aria-label={`Voir ${item.name}`}
                 >
-                  <span className="ph-card__img"><img loading="lazy" decoding="async" src={item.img} alt="" /></span>
+                  <span className="ph-card__img"><img src={item.img} alt="" /></span>
                   <span className="ph-card__name">{item.name}</span>
                   <span className="ph-card__price">{formatPrice(item.price)}</span>
                 </button>

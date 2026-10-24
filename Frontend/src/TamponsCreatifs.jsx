@@ -1,12 +1,12 @@
 import CategoryPage from './components/CategoryPage.jsx'
 import { creativeSteps } from './data/steps.js'
 
-import markyImg from './assets/brands/cutouts/marky.webp'
-import woodiesImg from './assets/brands/cutouts/woodies.webp'
-import ladotImg from './assets/brands/cutouts/ladot.webp'
-import nioImg from './assets/brands/cutouts/nio-school.webp'
-import cleanyImg from './assets/brands/cutouts/stamp-cleaner.webp'
-import inkPadsImg from './assets/brands/cutouts/make-stamp-pads.webp'
+import markyImg from './assets/brands/cutouts/marky.png'
+import woodiesImg from './assets/brands/cutouts/woodies.png'
+import ladotImg from './assets/brands/cutouts/ladot.png'
+import nioImg from './assets/brands/cutouts/nio-school.png'
+import cleanyImg from './assets/brands/cutouts/stamp-cleaner.png'
+import inkPadsImg from './assets/brands/cutouts/make-stamp-pads.png'
 
 const options = {
   Marky: {
