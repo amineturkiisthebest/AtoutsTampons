@@ -1,3 +1,5 @@
+import { memo } from 'react'
+
 const footerColumns = {
   'Tampons traditionnels': ['Trouver un revendeur', 'Espace partenaire', 'Systèmes & matériaux', 'Actualités'],
   'Impression mobile': ['Trouver un revendeur', 'Espace partenaire', 'Support', 'Blog'],
@@ -31,4 +33,4 @@ function Footer() {
   )
 }
 
-export default Footer
+export default memo(Footer)

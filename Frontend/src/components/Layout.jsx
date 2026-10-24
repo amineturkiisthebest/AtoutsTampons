@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import Header from './Header.jsx'
 import Footer from './Footer.jsx'
+import PageScrollbar from './PageScrollbar.jsx'
 import '../css/style.css'
 
 // Shared page frame: header, footer, cart counter and toast notifications
@@ -19,13 +20,14 @@ function Layout() {
 
   useEffect(() => () => clearTimeout(toastTimer.current), [])
 
-  const showToast = (message) => {
+  // Stable callbacks and context: toast and cart updates don't re-render the current page
+  const showToast = useCallback((message) => {
     setToast({ message, visible: true })
     clearTimeout(toastTimer.current)
     toastTimer.current = setTimeout(() => setToast((current) => ({ ...current, visible: false })), 2200)
-  }
+  }, [])
 
-  const addToCart = (productName) => {
+  const addToCart = useCallback((productName) => {
     setCartTotal((total) => total + 1)
 
     const cartLink = cartLinkRef.current
@@ -36,13 +38,18 @@ function Layout() {
     }
 
     showToast(`« ${productName} » ajouté au panier`)
-  }
+  }, [showToast])
+
+  const outletContext = useMemo(() => ({ showToast, addToCart }), [showToast, addToCart])
 
   return (
     <>
       <Header cartTotal={cartTotal} cartLinkRef={cartLinkRef} />
-      <Outlet context={{ showToast, addToCart }} />
+      <Suspense fallback={<div className="page-loading" aria-busy="true"></div>}>
+        <Outlet context={outletContext} />
+      </Suspense>
       <Footer />
+      <PageScrollbar />
       <div className={`toast${toast.visible ? ' is-visible' : ''}`} role="status" aria-live="polite">{toast.message}</div>
     </>
   )

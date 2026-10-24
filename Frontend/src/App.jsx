@@ -1,24 +1,27 @@
+import { lazy } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout.jsx'
 import Home from './Home.jsx'
-import About from './About.jsx'
-import TamponsP from './TamponsP.jsx'
-import TamponsT from './TamponsT.jsx'
-import Dateurs from './Dateurs.jsx'
-import Woodies from './Woodies.jsx'
-import LaDot from './LaDot.jsx'
-import Nio from './Nio.jsx'
-import PlaquesDeTexte from './PlaquesDeTexte.jsx'
-import Encriers from './Encriers.jsx'
-import FormatsStandard from './FormatsStandard.jsx'
-import Marky from './Marky.jsx'
-import Login from './Login.jsx'
-import PretsALEmploi from './PretsALEmploi.jsx'
-import TamponsCreatifs from './TamponsCreatifs.jsx'
-import TamponsSpeciaux from './TamponsSpeciaux.jsx'
-import Accessoires from './Accessoires.jsx'
-import Gravures from './Gravures.jsx'
-import ImpressionMobile from './ImpressionMobile.jsx'
+
+// Every page except the home page is loaded on demand, so the first visit only downloads what it shows
+const About = lazy(() => import('./About.jsx'))
+const TamponsP = lazy(() => import('./TamponsP.jsx'))
+const TamponsT = lazy(() => import('./TamponsT.jsx'))
+const Dateurs = lazy(() => import('./Dateurs.jsx'))
+const Woodies = lazy(() => import('./Woodies.jsx'))
+const LaDot = lazy(() => import('./LaDot.jsx'))
+const Nio = lazy(() => import('./Nio.jsx'))
+const PlaquesDeTexte = lazy(() => import('./PlaquesDeTexte.jsx'))
+const Encriers = lazy(() => import('./Encriers.jsx'))
+const FormatsStandard = lazy(() => import('./FormatsStandard.jsx'))
+const Marky = lazy(() => import('./Marky.jsx'))
+const Login = lazy(() => import('./Login.jsx'))
+const PretsALEmploi = lazy(() => import('./PretsALEmploi.jsx'))
+const TamponsCreatifs = lazy(() => import('./TamponsCreatifs.jsx'))
+const TamponsSpeciaux = lazy(() => import('./TamponsSpeciaux.jsx'))
+const Accessoires = lazy(() => import('./Accessoires.jsx'))
+const Gravures = lazy(() => import('./Gravures.jsx'))
+const ImpressionMobile = lazy(() => import('./ImpressionMobile.jsx'))
 
 function App() {
   return (

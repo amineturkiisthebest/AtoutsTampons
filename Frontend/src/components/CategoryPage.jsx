@@ -83,7 +83,7 @@ function CategoryPage({
               <article key={item.label} className="stamp-option">
                 {item.img ? (
                   <div className="stamp-option__preview stamp-option__preview--photo">
-                    <img src={item.img} alt={item.alt ?? item.label} />
+                    <img loading="lazy" decoding="async" src={item.img} alt={item.alt ?? item.label} />
                   </div>
                 ) : (
                   <div className="stamp-option__preview stamp-option__preview--icon">

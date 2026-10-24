@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom'
 import useReveal from './hooks/useReveal.js'
 import { navLinks } from './data/navigation.js'
 
-import textStampsImg from './assets/stamps/tampons-de-texte.png'
-import datersImg from './assets/stamps/dateurs.png'
-import numberersImg from './assets/stamps/numeroteurs.png'
+import textStampsImg from './assets/stamps/tampons-de-texte.webp'
+import datersImg from './assets/stamps/dateurs.webp'
+import numberersImg from './assets/stamps/numeroteurs.webp'
 
 const category = navLinks.find((link) => link.label === 'Tampons personnalisés')
 
@@ -68,7 +68,7 @@ function TamponsP() {
             {options.map((option) => (
               <article key={option.label} className="stamp-option">
                 <div className="stamp-option__preview stamp-option__preview--photo">
-                  <img src={option.img} alt={option.alt} />
+                  <img loading="lazy" decoding="async" src={option.img} alt={option.alt} />
                 </div>
                 <div className="stamp-option__body">
                   <h3>{option.label}</h3>

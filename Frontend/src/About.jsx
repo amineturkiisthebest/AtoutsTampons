@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import useReveal from './hooks/useReveal.js'
 
-import companyImg from './assets/sections/company.jpg'
+import companyImg from './assets/sections/company.webp'
 
 const address = '167 boulevard de Créteil, 94100 Saint-Maur-des-Fossés'
 const mapEmbedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(address)}&z=17&output=embed`
@@ -77,7 +77,7 @@ function About() {
             </p>
           </div>
           <div className="about-story__image">
-            <img src={companyImg} alt="Tampons et accessoires COLOP" />
+            <img loading="lazy" decoding="async" src={companyImg} alt="Tampons et accessoires COLOP" />
           </div>
         </section>
 

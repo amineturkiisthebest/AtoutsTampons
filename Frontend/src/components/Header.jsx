@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
-import { Link, NavLink } from 'react-router-dom'
-import logo from '../assets/logo-atouts-tampons.png'
+import { memo, useEffect, useRef, useState } from 'react'
+import { Link, NavLink, useLocation } from 'react-router-dom'
+import logo from '../assets/logo-atouts-tampons.webp'
 import { navLinks } from '../data/navigation.js'
 
 // Dropdown entries, rendered recursively so menus can nest to any depth
@@ -44,7 +44,20 @@ function NavMenuItems({ items, parentKey, expandedMenus, onToggle, onNavigate })
   })
 }
 
+// The first categories sit in the bar, the rest are grouped under "Plus"
+const MAIN_LINK_COUNT = 3
+const mainLinks = navLinks.slice(0, MAIN_LINK_COUNT)
+const moreLinks = navLinks.slice(MAIN_LINK_COUNT)
+const visibleLinks = [...mainLinks, { label: 'Plus', children: moreLinks }]
+
+// Every route reachable from a menu entry, used to highlight "Plus"
+const collectRoutes = (items) =>
+  items.flatMap((item) => (typeof item === 'string' ? [] : [item.to, ...collectRoutes(item.children ?? [])]).filter(Boolean))
+const moreRoutes = collectRoutes(moreLinks)
+
 function Header({ cartTotal, cartLinkRef }) {
+  const { pathname } = useLocation()
+  const moreActive = moreRoutes.includes(pathname)
   const [isScrolled, setIsScrolled] = useState(false)
   const [navOpen, setNavOpen] = useState(false)
   const [expandedMenus, setExpandedMenus] = useState(() => new Set())
@@ -57,7 +70,7 @@ function Header({ cartTotal, cartLinkRef }) {
 
   // Header background once the page is scrolled
   useEffect(() => {
-    const updateHeader = () => setIsScrolled(window.scrollY > 8)
+    const updateHeader = () => setIsScrolled(window.scrollY > 50)
     updateHeader()
     window.addEventListener('scroll', updateHeader, { passive: true })
     return () => window.removeEventListener('scroll', updateHeader)
@@ -112,15 +125,24 @@ function Header({ cartTotal, cartLinkRef }) {
           <img src={logo} alt="Atouts Tampons" width="600" height="157" />
         </Link>
         <nav className={`main-nav${navOpen ? ' open' : ''}`} aria-label="Navigation principale">
-          {navLinks.map((link, index) => (
+          {visibleLinks.map((link, index) => (
             <div
               key={link.label}
-              className={`nav-item${index >= navLinks.length - 3 ? ' nav-item--end' : ''}${expandedMenus.has(link.label) ? ' is-expanded' : ''}`}
+              className={`nav-item${index === visibleLinks.length - 1 ? ' nav-item--end nav-item--more' : ''}${expandedMenus.has(link.label) ? ' is-expanded' : ''}`}
             >
               {link.to ? (
                 <NavLink to={link.to} end onClick={() => setNavOpen(false)}>
                   {link.label}
                 </NavLink>
+              ) : link.label === 'Plus' ? (
+                <button
+                  className={`nav-more${moreActive ? ' active' : ''}`}
+                  type="button"
+                  aria-expanded={expandedMenus.has(link.label)}
+                  onClick={() => toggleMenu(link.label)}
+                >
+                  {link.label}
+                </button>
               ) : (
                 <a href="#" onClick={() => setNavOpen(false)}>
                   {link.label}
@@ -165,7 +187,7 @@ function Header({ cartTotal, cartLinkRef }) {
           </button>
           <a ref={cartLinkRef} className="cart-link" href="#" aria-label="Mon panier" title="Mon panier">
             <i className="fa-solid fa-cart-shopping" aria-hidden="true"></i>
-            <span className="cart-count" hidden={cartTotal === 0}>{cartTotal}</span>
+            <span className="cart-count">{cartTotal}</span>
           </a>
           <Link className="signin-link" to="/connexion" aria-label="Se connecter">
             <i className="fa-regular fa-user" aria-hidden="true"></i><span>Se connecter</span>
@@ -199,4 +221,4 @@ function Header({ cartTotal, cartLinkRef }) {
   )
 }
 
-export default Header
+export default memo(Header)

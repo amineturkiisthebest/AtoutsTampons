@@ -1,6 +1,6 @@
 import CategoryPage from './components/CategoryPage.jsx'
 import { creativeSteps } from './data/steps.js'
-import nioImg from './assets/brands/cutouts/nio-school.png'
+import nioImg from './assets/brands/cutouts/nio-school.webp'
 
 const options = {
   'NIO école': {
