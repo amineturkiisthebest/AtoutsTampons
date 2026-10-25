@@ -533,17 +533,20 @@ img {
 
 .hero {
   position: relative;
+  isolation: isolate;
   min-height: 100vh;
   overflow: hidden;
-  background: url("../assets/sections/hero-background.png") center / cover no-repeat, #fff6e8;
 }
 
+/* Background on its own layer, faded out at the bottom so it dissolves into the page background of the next sections */
 .hero::after {
   content: "";
   position: absolute;
-  inset: auto 0 0 0;
-  height: 240px;
-  background: linear-gradient(180deg, rgba(255, 246, 232, 0) 0%, rgba(255, 246, 232, 0.72) 54%, #fff 100%);
+  inset: 0;
+  z-index: -1;
+  background: url("../assets/sections/hero-background.png") center / cover no-repeat, #fff6e8;
+  -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 260px), transparent 100%);
+  mask-image: linear-gradient(180deg, #000 calc(100% - 260px), transparent 100%);
   pointer-events: none;
 }
 
@@ -3491,6 +3494,497 @@ img {
   }
 }
 
+/* ---------- Home Printer 30 studio (components/PrinterStudio.jsx) ---------- */
+
+.ps {
+  --mx: 0;
+  --my: 0;
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  /* Generous bottom padding: the 3D printer's canvas extends below the printer and must not be cut by the section */
+  padding: calc(var(--header-h) + 16px) 0 140px;
+  overflow: hidden;
+  /* Site watercolour with a warm sunset glow behind the printer */
+  background:
+    radial-gradient(circle at 54% 64%, rgba(255, 190, 140, 0.5), transparent 38%),
+    radial-gradient(circle at 78% 22%, rgba(255, 140, 165, 0.22), transparent 36%),
+    radial-gradient(circle at 18% 82%, rgba(170, 160, 255, 0.16), transparent 40%),
+    url("../assets/sections/hero-background.png") center / cover no-repeat,
+    #fff6e8;
+}
+
+.ps::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: 0;
+  height: 200px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.7) 55%, #fff 100%);
+  pointer-events: none;
+}
+
+.ps__frame {
+  position: relative;
+  z-index: 2;
+  width: min(88vw, 1500px);
+  /* A little taller than the screen so the floating 3D printer has room */
+  height: calc(100vh - var(--header-h) + 60px);
+  min-height: 700px;
+  margin: 0 auto;
+}
+
+.ps-copy {
+  position: absolute;
+  top: 2%;
+  left: 0;
+  z-index: 3;
+  max-width: 30%;
+}
+
+.ps-headline {
+  margin: 0;
+  color: #102238;
+  font-family: "Kaushan Script", "Brush Script MT", cursive;
+  font-size: clamp(46px, 4.6vw, 82px);
+  font-weight: 400;
+  line-height: 1;
+  text-shadow: 0 8px 24px rgba(255, 255, 255, 0.7);
+}
+
+.ps-headline span {
+  display: block;
+}
+
+.ps-headline__accent {
+  position: relative;
+  width: max-content;
+  padding-left: 0.4em;
+  color: var(--red);
+}
+
+/* Brush swash under the accent line */
+.ps-headline__accent::after {
+  content: "";
+  position: absolute;
+  left: 0.3em;
+  right: -0.2em;
+  bottom: -0.18em;
+  height: 0.26em;
+  background: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 20' preserveAspectRatio='none'%3E%3Cpath d='M2 14 C60 4 130 2 198 8' stroke='%23ef1d2a' stroke-width='5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+}
+
+.ps-intro {
+  max-width: 300px;
+  margin: 26px 0 0;
+  color: #3c4658;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+/* Floating insert cards */
+.ps-cards {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.ps-card {
+  position: absolute;
+  display: block;
+  width: clamp(150px, 14.5vw, 220px);
+  aspect-ratio: 1.8;
+  padding: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.4));
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  box-shadow: 0 18px 36px rgba(16, 34, 56, 0.18), inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(6px);
+  cursor: pointer;
+  pointer-events: auto;
+  transform:
+    translate(calc(var(--mx) * var(--depth) * 1px), calc(var(--my) * var(--depth) * 1px))
+    rotate(var(--tilt));
+  transition: transform 700ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 200ms ease;
+  animation: ps-card-bob 5s ease-in-out infinite;
+}
+
+.ps-card:nth-child(2) { animation-delay: -1s; }
+.ps-card:nth-child(3) { animation-delay: -2s; }
+.ps-card:nth-child(4) { animation-delay: -3s; }
+.ps-card:nth-child(5) { animation-delay: -1.5s; }
+.ps-card:nth-child(6) { animation-delay: -2.5s; }
+
+@keyframes ps-card-bob {
+  0%, 100% { translate: 0 0; }
+  50%      { translate: 0 -12px; }
+}
+
+.ps-card:hover {
+  box-shadow: 0 24px 44px rgba(16, 34, 56, 0.26), inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+  transform:
+    translate(calc(var(--mx) * var(--depth) * 1px), calc(var(--my) * var(--depth) * 1px))
+    rotate(var(--tilt))
+    scale(1.06);
+}
+
+.ps-card.is-active {
+  box-shadow: 0 0 0 3px var(--red), 0 0 30px rgba(239, 29, 42, 0.45), 0 18px 36px rgba(16, 34, 56, 0.2);
+}
+
+.ps-card__img {
+  position: absolute;
+  inset: 6px;
+  display: grid;
+  place-items: center;
+  color: var(--red);
+  background: #fbf7f1 center / cover no-repeat;
+  border-radius: 11px;
+  font-size: 26px;
+}
+
+/* Glass reflection over the design */
+.ps-card__img::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(125deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0) 38%, rgba(255, 255, 255, 0) 70%, rgba(255, 255, 255, 0.2) 100%);
+  border-radius: inherit;
+}
+
+.ps-card__label {
+  position: absolute;
+  bottom: -13px;
+  left: 50%;
+  padding: 4px 12px;
+  color: #102238;
+  background: #fff;
+  border-radius: 999px;
+  box-shadow: 0 6px 14px rgba(16, 34, 56, 0.14);
+  font-size: 11px;
+  font-weight: 900;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translate(-50%, 4px);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.ps-card:hover .ps-card__label,
+.ps-card:focus-visible .ps-card__label,
+.ps-card:focus-within .ps-card__label,
+.ps-card.is-active .ps-card__label {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.ps-card--upload {
+  border-style: dashed;
+  border-color: rgba(239, 29, 42, 0.55);
+}
+
+.ps-card--upload input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.ps-card--upload:focus-within {
+  outline: 2px solid var(--red);
+  outline-offset: 3px;
+}
+
+/* Printer in the middle */
+.ps-stage {
+  position: absolute;
+  bottom: 0;
+  left: 52%;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translateX(-50%);
+}
+
+.ps-printer {
+  position: relative;
+  width: clamp(320px, 33vw, 470px);
+  perspective: 1100px;
+}
+
+/* WebGL printer (components/Printer3D.jsx), over the photo version until it has loaded */
+/* Much larger than the printer so hovering and tilting never reach the canvas edges */
+.ps-3d {
+  position: absolute;
+  inset: -32% -30%;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 600ms ease;
+  pointer-events: none;
+}
+
+.ps-3d canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.ps-printer--ready .ps-3d {
+  opacity: 1;
+}
+
+.ps-printer--ready .ps-printer__photo {
+  visibility: hidden;
+}
+
+/* Hover (up and down), idle sway, and tilt towards the cursor, in 3D */
+.ps-printer__float {
+  transform-style: preserve-3d;
+  transform: rotateY(calc(var(--mx) * 16deg)) rotateX(calc(var(--my) * -9deg));
+  transition: transform 650ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation: ps-hover 5s ease-in-out infinite, ps-sway 9s ease-in-out infinite;
+}
+
+@keyframes ps-hover {
+  0%, 100% { translate: 0 0; }
+  50%      { translate: 0 -18px; }
+}
+
+@keyframes ps-sway {
+  0%, 100% { rotate: y -9deg; }
+  50%      { rotate: y 9deg; }
+}
+
+/* Contact shadow on the ground: tighter and darker when the printer is low */
+.ps-printer__shadow {
+  position: absolute;
+  bottom: 1%;
+  left: 50%;
+  width: 52%;
+  height: 7%;
+  background: radial-gradient(ellipse at center, rgba(16, 34, 56, 0.32) 0%, rgba(16, 34, 56, 0) 70%);
+  border-radius: 50%;
+  transform: translateX(-50%);
+  animation: ps-shadow 5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes ps-shadow {
+  0%, 100% { scale: 1; opacity: 1; }
+  50%      { scale: 0.8; opacity: 0.6; }
+}
+
+/* Printer 30: real photo layers (shell over the customer's design) */
+.ps-p30 {
+  position: relative;
+  container-type: inline-size;
+  width: 100%;
+  aspect-ratio: 902 / 767;
+  filter: drop-shadow(0 34px 34px rgba(16, 34, 56, 0.26));
+  user-select: none;
+}
+
+.ps-p30__shell {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* Glossy highlight sweeping across the plastic as the printer turns (opposite to the rotation, like a fixed light) */
+.ps-p30__shine {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  overflow: hidden;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.ps-p30__shine span {
+  position: absolute;
+  inset: 0 -60%;
+  background: linear-gradient(105deg, rgba(255, 255, 255, 0) 36%, rgba(255, 255, 255, 0.75) 46%, rgba(255, 255, 255, 0.2) 52%, rgba(255, 255, 255, 0) 62%);
+  translate: calc(var(--mx) * -18%) 0;
+  transition: translate 650ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation: ps-shine 9s ease-in-out infinite;
+}
+
+@keyframes ps-shine {
+  0%, 100% { transform: translateX(12%); }
+  50%      { transform: translateX(-12%); }
+}
+
+/* Design area: the insert's exact shape, cut by a mask taken from the photo */
+.ps-p30__insert {
+  position: absolute;
+  z-index: 1;
+  overflow: hidden;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  background: #eef3fb;
+}
+
+.ps-p30__design {
+  position: absolute;
+  inset: 0;
+  background: center / cover no-repeat;
+  animation: ps-design-in 520ms ease both;
+}
+
+@keyframes ps-design-in {
+  from { opacity: 0; transform: scale(1.04); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Light on the clear plastic: shine along the curved top edge, soft shading at the sides and bottom */
+.ps-p30__gloss {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0) 17%, rgba(255, 255, 255, 0.75) 22%, rgba(255, 255, 255, 0.2) 30%, rgba(255, 255, 255, 0) 40%),
+    linear-gradient(90deg, rgba(16, 34, 56, 0.14) 0%, rgba(16, 34, 56, 0) 26%, rgba(16, 34, 56, 0) 82%, rgba(16, 34, 56, 0.16) 100%),
+    linear-gradient(180deg, rgba(16, 34, 56, 0) 70%, rgba(16, 34, 56, 0.16) 100%),
+    linear-gradient(125deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0) 35%);
+  pointer-events: none;
+}
+
+/* Compact toolbar under the printer */
+.ps-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 6px 6px 6px 16px;
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  border-radius: 999px;
+  box-shadow: 0 14px 30px rgba(16, 34, 56, 0.14);
+  backdrop-filter: blur(10px);
+}
+
+.ps-bar__price {
+  color: #102238;
+  font-size: 17px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.ps-bar__cart {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  color: #fff;
+  background: var(--red);
+  border: 0;
+  border-radius: 50%;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 160ms ease, transform 160ms ease;
+}
+
+.ps-bar__cart:hover {
+  background: var(--red-dark);
+  transform: scale(1.06);
+}
+
+.ps-error {
+  margin: 8px 0 0;
+  color: var(--red-dark);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* The product hero follows the video hero (whose bottom dissolves into the page background):
+   no header offset, and a fade from the page colour so both backgrounds blend */
+.hero + .ph {
+  padding-top: 60px;
+}
+
+.hero + .ph .ph__top-fade {
+  position: absolute;
+  inset: 0 0 auto 0;
+  z-index: 0;
+  height: 200px;
+  background:
+    linear-gradient(90deg, rgba(239, 29, 42, 0.08), transparent 13%, transparent 87%, rgba(239, 29, 42, 0.08)),
+    var(--page);
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 0%, transparent 100%);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ps-card,
+  .ps-printer__float,
+  .ps-printer__shadow,
+  .ps-p30__shine span {
+    transition: none;
+    animation: none;
+  }
+
+  .ps-p30__design {
+    animation: none;
+  }
+}
+
+@media (max-width: 1040px) {
+  .ps__frame {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    width: min(720px, 92vw);
+    height: auto;
+    min-height: 0;
+  }
+
+  .ps-copy,
+  .ps-stage {
+    position: static;
+    max-width: none;
+    transform: none;
+  }
+
+  .ps-stage {
+    order: 2;
+    align-self: center;
+  }
+
+  /* Cards become a swipeable row under the printer */
+  .ps-cards {
+    position: static;
+    order: 3;
+    display: flex;
+    gap: 16px;
+    padding: 10px 4px 22px;
+    overflow-x: auto;
+  }
+
+  .ps-card {
+    position: relative;
+    inset: auto !important;
+    flex: none;
+    width: 150px;
+    transform: rotate(calc(var(--tilt) / 3));
+  }
+}
+
+@media (max-width: 640px) {
+  .ps__frame {
+    width: calc(100% - 32px);
+  }
+}
+
 /* ---------- Home product hero (components/ProductHero.jsx) ---------- */
 
 /* Registered so the background gradients fade from one product colour to the next */
@@ -3527,13 +4021,18 @@ img {
   pointer-events: none;
 }
 
+/* Bottom: dissolves into the page background (cream with the soft red side edges) of the sections below */
 .ph::after {
   content: "";
   position: absolute;
   inset: auto 0 0 0;
   z-index: 0;
   height: 200px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.7) 55%, #fff 100%);
+  background:
+    linear-gradient(90deg, rgba(239, 29, 42, 0.08), transparent 13%, transparent 87%, rgba(239, 29, 42, 0.08)),
+    var(--page);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 100%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 100%);
   pointer-events: none;
 }
 
@@ -3946,8 +4445,8 @@ img {
 
 /* Icons bursting from a click */
 .ph-burst {
-  position: absolute;
-  z-index: 4;
+  position: fixed;
+  z-index: 40;
   width: 0;
   height: 0;
   pointer-events: none;
@@ -3957,7 +4456,7 @@ img {
   position: absolute;
   top: 0;
   left: 0;
-  color: var(--accent);
+  color: inherit;
   animation: ph-burst 900ms cubic-bezier(0.15, 0.7, 0.3, 1) forwards;
 }
 
@@ -3977,12 +4476,12 @@ img {
   }
 }
 
-/* The video hero follows this section: no header offset, and a mirror fade so both backgrounds blend */
-.ph + .hero .hero__inner {
+/* The video hero follows the Printer 30 section: no header offset, and a mirror fade so both backgrounds blend */
+.ps + .hero .hero__inner {
   padding-top: 60px;
 }
 
-.ph + .hero::before {
+.ps + .hero::before {
   content: "";
   position: absolute;
   inset: 0 0 auto 0;

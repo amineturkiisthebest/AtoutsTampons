@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { Link, useOutletContext } from 'react-router-dom'
 import useReveal from './hooks/useReveal.js'
+import PrinterStudio from './components/PrinterStudio.jsx'
 import ProductHero from './components/ProductHero.jsx'
 
 import heroVideo from './assets/sections/hero-main-video.webm'
@@ -106,7 +107,7 @@ function Home() {
 
   return (
     <main ref={rootRef}>
-      <ProductHero />
+      <PrinterStudio />
 
       <section className="hero">
         <div className="hero__inner">
@@ -135,6 +136,8 @@ function Home() {
           </div>
         </div>
       </section>
+
+      <ProductHero />
 
 
       <div className="after-universe">

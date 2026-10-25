@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Link, useOutletContext } from 'react-router-dom'
 
 import printerImg from '../assets/showcase/printer-20.png'
@@ -151,7 +152,6 @@ function ProductHero() {
   // Icons burst out from wherever the visitor clicks or taps (outside the links and buttons)
   const handlePointerDown = (event) => {
     if (event.target.closest('a, button') || prefersReducedMotion()) return
-    const rect = sectionRef.current.getBoundingClientRect()
     const id = ++burstId.current
     const particles = Array.from({ length: BURST_SIZE }, (_, i) => {
       const angle = (i / BURST_SIZE) * Math.PI * 2 + Math.random() * 0.5
@@ -164,7 +164,7 @@ function ProductHero() {
         size: 14 + Math.round(Math.random() * 16),
       }
     })
-    setBursts((current) => [...current, { id, x: event.clientX - rect.left, y: event.clientY - rect.top, particles }])
+    setBursts((current) => [...current, { id, x: event.clientX, y: event.clientY, color: product.accent, particles }])
     window.setTimeout(() => setBursts((current) => current.filter((burst) => burst.id !== id)), 1000)
   }
 
@@ -178,6 +178,7 @@ function ProductHero() {
       onPointerLeave={handlePointerLeave}
       onPointerDown={handlePointerDown}
     >
+      <div className="ph__top-fade" aria-hidden="true"></div>
       <div className="ph__glow" aria-hidden="true"></div>
 
       <div className="ph__frame">
@@ -264,17 +265,21 @@ function ProductHero() {
         </div>
       </div>
 
-      {bursts.map((burst) => (
-        <span key={burst.id} className="ph-burst" style={{ left: burst.x, top: burst.y }} aria-hidden="true">
-          {burst.particles.map((particle, particleIndex) => (
-            <i
-              key={particleIndex}
-              className={particle.icon}
-              style={{ '--dx': `${particle.dx}px`, '--dy': `${particle.dy}px`, '--rot': `${particle.rotate}deg`, fontSize: particle.size }}
-            ></i>
-          ))}
-        </span>
-      ))}
+      {/* Rendered on <body> at viewport coordinates so the section's edges never clip the burst */}
+      {createPortal(
+        bursts.map((burst) => (
+          <span key={burst.id} className="ph-burst" style={{ left: burst.x, top: burst.y, color: burst.color }} aria-hidden="true">
+            {burst.particles.map((particle, particleIndex) => (
+              <i
+                key={particleIndex}
+                className={particle.icon}
+                style={{ '--dx': `${particle.dx}px`, '--dy': `${particle.dy}px`, '--rot': `${particle.rotate}deg`, fontSize: particle.size }}
+              ></i>
+            ))}
+          </span>
+        )),
+        document.body,
+      )}
     </section>
   )
 }
