@@ -95,6 +95,11 @@ function Printer30({ design }) {
   )
 }
 
+// Card floating: same rhythm as the former CSS animation (5 s, 12 px), each card offset in time
+const CARD_PERIOD = 5
+const CARD_PHASES = [0, 1, 2, 3, 1.5, 2.5]
+const reduceMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
 // Home page section: a Printer 30 surrounded by floating insert designs; pick one (or your own image) to dress the printer
 function PrinterStudio() {
   const { addToCart } = useOutletContext()
@@ -106,6 +111,23 @@ function PrinterStudio() {
   const [model3d, setModel3d] = useState('loading')
   const handle3dLoad = useCallback(() => setModel3d('ready'), [])
   const handle3dError = useCallback(() => setModel3d('failed'), [])
+  const cardsRef = useRef(null)
+  const shadowRef = useRef(null)
+
+  // While the 3D printer runs, the cards' floating and the ground shadow are driven from its 30 fps loop instead of
+  // CSS animations, which would make the browser redraw the whole screen at the monitor's full refresh rate
+  const handle3dFrame = useCallback((t, hover) => {
+    if (reduceMotion) return
+    Array.from(cardsRef.current?.children ?? []).forEach((card, index) => {
+      const phase = (t + CARD_PHASES[index % CARD_PHASES.length]) / CARD_PERIOD
+      card.style.translate = `0 ${(-6 * (1 - Math.cos(phase * Math.PI * 2))).toFixed(1)}px`
+    })
+    if (shadowRef.current) {
+      const lift = (hover + 1) / 2
+      shadowRef.current.style.scale = (1 - lift * 0.2).toFixed(3)
+      shadowRef.current.style.opacity = (1 - lift * 0.4).toFixed(3)
+    }
+  }, [])
 
   const design = designId === 'upload' && upload ? upload.url : designs.find((d) => d.id === designId).src
 
@@ -146,7 +168,7 @@ function PrinterStudio() {
   }
 
   return (
-    <section ref={sectionRef} className="ps" aria-labelledby="ps-title" onPointerMove={handlePointerMove} onPointerLeave={handlePointerLeave}>
+    <section ref={sectionRef} className={`ps${model3d === 'ready' ? ' ps--3d' : ''}`} aria-labelledby="ps-title" onPointerMove={handlePointerMove} onPointerLeave={handlePointerLeave}>
       <div className="ps__frame">
         <div className="ps-copy">
           <h2 className="ps-headline" id="ps-title">
@@ -159,7 +181,7 @@ function PrinterStudio() {
           </p>
         </div>
 
-        <div className="ps-cards" role="group" aria-label="Choisir l'habillage du tampon">
+        <div ref={cardsRef} className="ps-cards" role="group" aria-label="Choisir l'habillage du tampon">
           {designs.map((item) => (
             <button
               key={item.id}
@@ -188,14 +210,14 @@ function PrinterStudio() {
 
         <div className="ps-stage">
           <div className={`ps-printer ps-printer--${model3d}`}>
-            <span className="ps-printer__shadow" aria-hidden="true"></span>
+            <span ref={shadowRef} className="ps-printer__shadow" aria-hidden="true"></span>
             {/* Photo version: shown while the 3D model loads, and kept if WebGL is unavailable */}
             <div className="ps-printer__float ps-printer__photo">
               <Printer30 design={design} />
             </div>
             {model3d !== 'failed' && (
               <Suspense fallback={null}>
-                <Printer3D design={designId === 'blue' ? null : design} pointer={pointer} onLoad={handle3dLoad} onError={handle3dError} />
+                <Printer3D design={designId === 'blue' ? null : design} pointer={pointer} onLoad={handle3dLoad} onError={handle3dError} onFrame={handle3dFrame} />
               </Suspense>
             )}
           </div>

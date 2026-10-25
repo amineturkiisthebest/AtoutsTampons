@@ -10,6 +10,9 @@ import modelUrl from '../assets/printer30/printer30.glb?url'
 import insertUvMaskUrl from '../assets/printer30/printer30-insert-uv.png'
 
 const HOVER_PERIOD = 5
+// Rendering budget: frames per second and maximum pixel density of the canvas
+const FPS = 30
+const MAX_PIXEL_RATIO = 1.5
 const SWAY_PERIOD = 9
 const SWAY = THREE.MathUtils.degToRad(9)
 const TILT_Y = THREE.MathUtils.degToRad(16)
@@ -138,13 +141,13 @@ const keepFacing = (geometry, direction, min) => {
   return filtered
 }
 
-// `priority`: where the front and top decals overlap on the rounded edge, the higher one is drawn
+// `priority`: where the front and top decals overlap on the rounded edge, the higher one is drawn.
+// Standard (not physical/clear-coat) material: still glossy under the moving key light, much cheaper per pixel
 const decalMaterial = (map, priority) =>
-  new THREE.MeshPhysicalMaterial({
+  new THREE.MeshStandardMaterial({
     map,
-    roughness: 0.45,
-    clearcoat: 1,
-    clearcoatRoughness: 0.12,
+    roughness: 0.28,
+    metalness: 0,
     polygonOffset: true,
     polygonOffsetFactor: -4 - priority * 2,
     polygonOffsetUnits: -4 - priority * 2,
@@ -153,20 +156,27 @@ const decalMaterial = (map, priority) =>
 // COLOP Printer 30 rendered in WebGL.
 // `design`: image URL for the insert, or null to keep the model's own (blue wave) design.
 // `pointer`: ref holding the cursor position (-1…1) over the section.
-function Printer3D({ design, pointer, onLoad, onError }) {
+// `onFrame(t, hover)`: called on every rendered frame, so other moving elements can follow the same 30 fps clock
+function Printer3D({ design, pointer, onLoad, onError, onFrame }) {
   const mountRef = useRef(null)
+  const onFrameRef = useRef(onFrame)
   const sceneRef = useRef(null)
+
+  useEffect(() => {
+    onFrameRef.current = onFrame
+  }, [onFrame])
 
   useEffect(() => {
     const mount = mountRef.current
     let renderer
     try {
-      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
+      // Multisampling only on standard-density screens; on high-density ones the extra pixels already smooth edges
+      renderer = new THREE.WebGLRenderer({ antialias: window.devicePixelRatio < 1.5, alpha: true, powerPreference: 'low-power' })
     } catch {
       onError?.()
       return undefined
     }
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO))
     renderer.outputColorSpace = THREE.SRGBColorSpace
     renderer.toneMapping = THREE.ACESFilmicToneMapping
     renderer.toneMappingExposure = 1.05
@@ -238,19 +248,26 @@ function Printer3D({ design, pointer, onLoad, onError }) {
       () => onError?.(),
     )
 
-    // Animation: hover, idle sway and cursor tilt, eased; paused when the section is off screen
+    // Animation: hover, idle sway and cursor tilt, eased; paused when the section is off screen.
+    // Drawn at most FPS times a second (the slow motion doesn't need the screen's full refresh rate)
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const smooth = { x: 0, y: 0 }
-    const clock = new THREE.Clock()
+    const start = performance.now()
     let frame = 0
     let visible = true
+    let last = 0
 
-    const render = () => {
+    const render = (now = performance.now()) => {
       frame = visible ? requestAnimationFrame(render) : 0
-      const t = clock.getElapsedTime()
+      if (last && now - last < 1000 / FPS - 2) return
+      const dt = last ? Math.min((now - last) / 1000, 0.1) : 0
+      last = now
+      const t = (now - start) / 1000
       const target = pointer?.current ?? { x: 0, y: 0 }
-      smooth.x += (target.x - smooth.x) * 0.06
-      smooth.y += (target.y - smooth.y) * 0.06
+      // Same easing speed whatever the frame rate (equivalent to 6% per frame at 60 fps)
+      const ease = 1 - Math.pow(0.94, dt * 60)
+      smooth.x += (target.x - smooth.x) * ease
+      smooth.y += (target.y - smooth.y) * ease
       const hover = reduceMotion ? 0 : Math.sin((t / HOVER_PERIOD) * Math.PI * 2)
       const sway = reduceMotion ? 0 : Math.sin((t / SWAY_PERIOD) * Math.PI * 2)
       pivot.position.y = hover * 0.06
@@ -259,6 +276,7 @@ function Printer3D({ design, pointer, onLoad, onError }) {
       key.position.x = -2.5 - smooth.x * 3
       key.position.y = 3 - smooth.y * 1.5
       renderer.render(scene, camera)
+      onFrameRef.current?.(t, hover)
     }
     render()
 

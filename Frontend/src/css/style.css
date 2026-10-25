@@ -3735,8 +3735,21 @@ img {
   opacity: 1;
 }
 
+/* Once the 3D printer runs: the photo version stays invisible but keeps its space (the 3D canvas is sized from it),
+   with its CSS animation stopped; the cards' floating and the shadow follow the 3D loop (Printer3D onFrame) instead
+   of CSS animations, which would make the browser redraw at the monitor's full refresh rate */
 .ps-printer--ready .ps-printer__photo {
   visibility: hidden;
+}
+
+.ps--3d .ps-card,
+.ps--3d .ps-printer__shadow,
+.ps--3d .ps-printer__photo {
+  animation: none;
+}
+
+.ps--3d .ps-printer__photo {
+  transition: none;
 }
 
 /* Hover (up and down), idle sway, and tilt towards the cursor, in 3D */
