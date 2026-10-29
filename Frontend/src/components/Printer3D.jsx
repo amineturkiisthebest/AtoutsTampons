@@ -8,6 +8,8 @@ import { DecalGeometry } from 'three/examples/jsm/geometries/DecalGeometry.js'
 import modelUrl from '../assets/printer30/printer30.glb?url'
 // Where the blue insert is printed in the model's own colour texture (UV space, white + alpha)
 import insertUvMaskUrl from '../assets/printer30/printer30-insert-uv.png'
+// Clean black COLOP band (straightened from the product photo), laid over the model's band
+import bandUrl from '../assets/printer30/printer30-band.jpg'
 
 const HOVER_PERIOD = 5
 // Rendering budget: frames per second and maximum pixel density of the canvas
@@ -23,8 +25,11 @@ const BASE_YAW = THREE.MathUtils.degToRad(305)
 // Printed insert area, as fractions of the model's bounding box (measured by raycasting the model and
 // reading its colour texture): the whole front above the black band, and the whole top surface
 const INSERT_Z = [0.008, 0.997]
-const FRONT_Y = [0.404, 1]
+// Starts just inside the black band so the image meets it with a straight edge (no gap showing underneath)
+const FRONT_Y = [0.398, 1]
 const TOP_X = [0.006, 0.955]
+// Black COLOP band on the front, as fractions of the model's height (measured on the model's texture)
+const BAND_Y = [0.304, 0.404]
 
 // Image -> canvas texture with "cover" cropping to the target aspect ratio
 const loadDesign = (src, aspect) =>
@@ -115,8 +120,8 @@ const recolorInsert = (baseMap, mask, color) => {
 }
 
 // Glossy printed plastic: the clear coat catches the moving key light
-// Keep only the decal triangles that face the projection direction (dot > `min`), so surfaces seen edge-on
-// (the black side caps, the sides of the top) don't get a stretched copy of the image
+// Keep only the decal triangles that face the projection direction (dot > `min`): drops the back-facing ones;
+// the smooth fade at the edges is done per pixel in decalMaterial
 const keepFacing = (geometry, direction, min) => {
   const position = geometry.getAttribute('position')
   const normal = geometry.getAttribute('normal')
@@ -143,15 +148,64 @@ const keepFacing = (geometry, direction, min) => {
 
 // `priority`: where the front and top decals overlap on the rounded edge, the higher one is drawn.
 // Standard (not physical/clear-coat) material: still glossy under the moving key light, much cheaper per pixel
-const decalMaterial = (map, priority) =>
-  new THREE.MeshStandardMaterial({
+// `direction`: the side the decal faces; the image fades out smoothly, per pixel, where the surface turns away from it
+// (rounded corners), which gives clean curved edges instead of the model's triangle outline
+const decalMaterial = (map, priority, direction) => {
+  const material = new THREE.MeshStandardMaterial({
     map,
     roughness: 0.28,
     metalness: 0,
+    transparent: true,
+    depthWrite: false,
     polygonOffset: true,
     polygonOffsetFactor: -4 - priority * 2,
     polygonOffsetUnits: -4 - priority * 2,
   })
+  material.onBeforeCompile = (shader) => {
+    shader.uniforms.uFacingDir = { value: direction }
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying vec3 vFacingNormal;')
+      .replace('#include <beginnormal_vertex>', '#include <beginnormal_vertex>\nvFacingNormal = normal;')
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', '#include <common>\nuniform vec3 uFacingDir;\nvarying vec3 vFacingNormal;')
+      .replace(
+        '#include <dithering_fragment>',
+        '#include <dithering_fragment>\ngl_FragColor.a *= smoothstep(0.2, 0.45, dot(normalize(vFacingNormal), uFacingDir));',
+      )
+  }
+  return material
+}
+
+// The model's own band texture has a slightly malformed logo (its "C" is split across texture pieces), so a clean
+// band image is projected over it. Drawn above the insert decals (priority 2); always present, whatever the design.
+const addBandDecal = (state) => {
+  const { pivot, mesh, box } = state
+  const size = box.getSize(new THREE.Vector3())
+  const at = (axis, fraction) => box.min[axis] + size[axis] * fraction
+  const width = size.z * (INSERT_Z[1] - INSERT_Z[0])
+  const height = size.y * (BAND_Y[1] - BAND_Y[0])
+  const y = at('y', (BAND_Y[0] + BAND_Y[1]) / 2)
+  const z = at('z', (INSERT_Z[0] + INSERT_Z[1]) / 2)
+
+  const saved = { position: pivot.position.clone(), rotation: pivot.rotation.clone() }
+  pivot.position.set(0, 0, 0)
+  pivot.rotation.set(0, 0, 0)
+  pivot.updateMatrixWorld(true)
+  const hit = new THREE.Raycaster(new THREE.Vector3(box.max.x + 1, y, z), new THREE.Vector3(-1, 0, 0)).intersectObject(mesh, false)[0]
+  if (hit) {
+    const texture = new THREE.TextureLoader().load(bandUrl)
+    texture.colorSpace = THREE.SRGBColorSpace
+    texture.anisotropy = 4
+    const geometry = keepFacing(
+      new DecalGeometry(mesh, new THREE.Vector3(hit.point.x, y, z), new THREE.Euler(0, Math.PI / 2, 0), new THREE.Vector3(width, height, size.x * 0.5)),
+      new THREE.Vector3(1, 0, 0),
+      0.05,
+    )
+    pivot.add(new THREE.Mesh(geometry, decalMaterial(texture, 2, new THREE.Vector3(1, 0, 0))))
+  }
+  pivot.position.copy(saved.position)
+  pivot.rotation.copy(saved.rotation)
+}
 
 // COLOP Printer 30 rendered in WebGL.
 // `design`: image URL for the insert, or null to keep the model's own (blue wave) design.
@@ -240,6 +294,7 @@ function Printer3D({ design, pointer, onLoad, onError, onFrame }) {
           }
         })
         sceneRef.current.box = new THREE.Box3().setFromObject(holder)
+        addBandDecal(sceneRef.current)
         sceneRef.current.ready = true
         sceneRef.current.onReady?.()
         onLoad?.()
@@ -389,9 +444,9 @@ function Printer3D({ design, pointer, onLoad, onError, onFrame }) {
             new THREE.Vector3(width, frontHeight, size.x * 0.5),
           ),
           new THREE.Vector3(1, 0, 0),
-          0.3,
+          0.05,
         )
-        decals.push(new THREE.Mesh(geometry, decalMaterial(frontMap, 0)))
+        decals.push(new THREE.Mesh(geometry, decalMaterial(frontMap, 0, new THREE.Vector3(1, 0, 0))))
       }
       if (topHit) {
         // Projected along -y; image right -> -z (as on the front), image up -> -x (continuing over the edge)
@@ -401,9 +456,9 @@ function Printer3D({ design, pointer, onLoad, onError, onFrame }) {
         const geometry = keepFacing(
           new DecalGeometry(mesh, new THREE.Vector3(topX, topHit.point.y, z), orientation, new THREE.Vector3(width, topDepth, size.y * 0.1)),
           new THREE.Vector3(0, 1, 0),
-          0.3,
+          0.05,
         )
-        decals.push(new THREE.Mesh(geometry, decalMaterial(topMap, 1)))
+        decals.push(new THREE.Mesh(geometry, decalMaterial(topMap, 1, new THREE.Vector3(0, 1, 0))))
       }
 
       pivot.position.copy(saved.position)
